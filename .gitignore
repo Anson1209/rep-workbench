@@ -1,0 +1,7 @@
+node_modules/
+data/db.json
+data/.key
+data/uploads/
+data/backups/
+.DS_Store
+*.log

@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: rep-workbench
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/stats
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
