@@ -4,8 +4,13 @@
   const TOKEN_KEY = 'rep_token';
 
   function getToken() { return localStorage.getItem(TOKEN_KEY) || ''; }
-  function setToken(t) { localStorage.setItem(TOKEN_KEY, t); }
-  function clearToken() { localStorage.removeItem(TOKEN_KEY); }
+  function setToken(t) {
+    window.localStorage.setItem(TOKEN_KEY, t);
+    // Reset the api.js 401-storm guard so a fresh login can re-trigger
+    // the overlay if the server-side session is invalidated again.
+    window.__authOverlayShown = false;
+  }
+  function clearToken() { window.localStorage.removeItem(TOKEN_KEY); }
 
   async function authStatus() {
     const r = await fetch('/api/auth/status');
