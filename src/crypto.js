@@ -3,7 +3,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
-const KEY_FILE = path.join(__dirname, '..', 'data', '.key');
+const KEY_FILE = path.join(process.env.DATA_DIR || process.env.RAILWAY_VOLUME_MOUNT_PATH || path.join(__dirname, '..', 'data'), '.key');
 const ALGO = 'aes-256-gcm';
 
 function loadKey() {
