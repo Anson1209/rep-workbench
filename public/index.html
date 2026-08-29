@@ -44,7 +44,23 @@
   <div id="modal-root"></div>
   <div id="toast-root"></div>
 
+  <!-- Login / first-time setup overlay -->
+  <div id="auth-overlay" class="auth-overlay" style="display:none">
+    <div class="auth-card">
+      <div class="auth-logo">医</div>
+      <h2 id="auth-title">访问验证</h2>
+      <p class="muted tiny" id="auth-sub">请输入访问密码</p>
+      <input type="password" id="auth-pw" class="auth-input" placeholder="访问密码" autocomplete="current-password" />
+      <div id="auth-pw2-wrap" style="display:none;margin-top:10px">
+        <input type="password" id="auth-pw2" class="auth-input" placeholder="再次输入密码" autocomplete="new-password" />
+      </div>
+      <button id="auth-btn" class="btn btn-primary auth-btn">进入</button>
+      <div id="auth-msg" class="auth-msg"></div>
+    </div>
+  </div>
+
   <script src="/js/common.js"></script>
+  <script src="/js/auth.js"></script>
   <script src="/js/api.js"></script>
   <script src="/js/customers.js"></script>
   <script src="/js/calendar.js"></script>
