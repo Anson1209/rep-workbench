@@ -18,10 +18,30 @@
         '<div id="importMsg" class="tiny muted" style="margin-top:10px"></div>' +
       '</div>' +
       '<div class="card">' +
+        '<div class="section-head"><h2>访问密码</h2>' +
+          '<span class="sub">手机与电脑使用同一密码登录</span></div>' +
+        '<p class="muted tiny">修改后，所有已登录设备需使用新密码重新登录。</p>' +
+        '<div class="field" style="margin-top:12px">' +
+          '<label>原密码</label>' +
+          '<input type="password" id="pwOld" class="input" autocomplete="current-password">' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>新密码（至少 6 位）</label>' +
+          '<input type="password" id="pwNew" class="input" autocomplete="new-password">' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>确认新密码</label>' +
+          '<input type="password" id="pwNew2" class="input" autocomplete="new-password">' +
+        '</div>' +
+        '<button id="pwChangeBtn" class="btn btn-primary">修改密码</button>' +
+        '<div id="pwMsg" class="tiny muted" style="margin-top:10px"></div>' +
+      '</div>' +
+      '<div class="card">' +
         '<div class="section-head"><h2>关于与扩展</h2></div>' +
         '<p class="muted tiny" style="line-height:1.8">' +
           '· 本工作台为模块化结构，左侧「添加新板块」为预留扩展入口，后续可灵活接入新功能模块。<br>' +
           '· 敏感信息（身份证号、银行卡）采用 AES-256-GCM 加密存储，列表中默认脱敏显示，需手动「显示」方可查看明文。<br>' +
+          '· 公网访问受访问密码保护，未登录无法查看任何数据。<br>' +
           '· 由 不一书个人工作台生成器 生成。' +
         '</p>' +
       '</div>';
@@ -48,6 +68,32 @@
           toast('导入失败', 'err');
         }
         fileInput.value = '';
+      });
+
+      const pwOld = document.getElementById('pwOld');
+      const pwNew = document.getElementById('pwNew');
+      const pwNew2 = document.getElementById('pwNew2');
+      const pwBtn = document.getElementById('pwChangeBtn');
+      const pwMsg = document.getElementById('pwMsg');
+      pwBtn.addEventListener('click', async () => {
+        pwMsg.textContent = '';
+        pwMsg.className = 'tiny muted';
+        const o = pwOld.value, n = pwNew.value, n2 = pwNew2.value;
+        if (!o || !n) { pwMsg.textContent = '请填写原密码和新密码'; pwMsg.className = 'tiny err'; return; }
+        if (n.length < 6) { pwMsg.textContent = '新密码至少 6 位'; pwMsg.className = 'tiny err'; return; }
+        if (n !== n2) { pwMsg.textContent = '两次新密码不一致'; pwMsg.className = 'tiny err'; return; }
+        pwBtn.disabled = true;
+        try {
+          await window.Auth.changePassword(o, n);
+          pwMsg.textContent = '密码已修改，请在各设备用新密码重新登录。';
+          pwMsg.className = 'tiny ok';
+          pwOld.value = ''; pwNew.value = ''; pwNew2.value = '';
+          toast('密码已修改', 'ok');
+        } catch (e) {
+          pwMsg.textContent = e.message;
+          pwMsg.className = 'tiny err';
+        }
+        pwBtn.disabled = false;
       });
     }
   };
