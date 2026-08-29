@@ -86,6 +86,20 @@
   }
 
   // ----- 同步指示器（顶栏右上角，双端同步状态） -----
+  const SYNC_KEY = 'qthub_sync_interval';
+  const SYNC_OPTIONS = [1, 10, 30];
+  let syncTimer = null;
+
+  function getSyncInterval() {
+    const v = parseInt(localStorage.getItem(SYNC_KEY), 10);
+    return SYNC_OPTIONS.indexOf(v) >= 0 ? v : 1; // 默认 1 分钟
+  }
+  function setSyncInterval(min) {
+    localStorage.setItem(SYNC_KEY, String(min));
+    if (syncTimer) clearInterval(syncTimer);
+    syncTimer = setInterval(() => tickSync(true), min * 60 * 1000);
+  }
+
   function setSyncState(state, text) {
     const el = document.getElementById('syncIndicator');
     if (!el) return;
@@ -111,15 +125,69 @@
     }
   }
 
+  function markActiveInterval() {
+    const cur = getSyncInterval();
+    document.querySelectorAll('#syncMenu .sync-opt[data-min]').forEach(function (b) {
+      b.classList.toggle('active', parseInt(b.dataset.min, 10) === cur);
+    });
+  }
+
+  function openSyncMenu() {
+    const menu = document.getElementById('syncMenu');
+    const btn = document.getElementById('syncIndicator');
+    markActiveInterval();
+    menu.style.display = 'block';
+    menu.setAttribute('aria-hidden', 'false');
+    btn.setAttribute('aria-expanded', 'true');
+  }
+  function closeSyncMenu() {
+    const menu = document.getElementById('syncMenu');
+    const btn = document.getElementById('syncIndicator');
+    menu.style.display = 'none';
+    menu.setAttribute('aria-hidden', 'true');
+    btn.setAttribute('aria-expanded', 'false');
+  }
+
   function initSync() {
     const el = document.getElementById('syncIndicator');
     if (!el) return;
-    el.addEventListener('click', () => {
-      tickSync(false);
-      toast('已触发同步', 'ok');
+
+    el.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      const menu = document.getElementById('syncMenu');
+      if (menu.style.display === 'block') {
+        closeSyncMenu();
+      } else {
+        openSyncMenu();
+      }
     });
+
+    document.getElementById('syncMenu').addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      const opt = ev.target.closest('.sync-opt');
+      if (!opt) return;
+      if (opt.dataset.min) {
+        const min = parseInt(opt.dataset.min, 10);
+        setSyncInterval(min);
+        markActiveInterval();
+        closeSyncMenu();
+        tickSync(false);
+        toast('同步间隔已设为 ' + min + ' 分钟', 'ok');
+      } else if (opt.id === 'syncNowBtn') {
+        closeSyncMenu();
+        tickSync(false);
+        toast('已触发同步', 'ok');
+      }
+    });
+
+    // 点击空白处关闭菜单
+    document.addEventListener('click', function () {
+      const menu = document.getElementById('syncMenu');
+      if (menu && menu.style.display === 'block') closeSyncMenu();
+    });
+
     tickSync(true);
-    setInterval(() => tickSync(true), 30000);
+    setSyncInterval(getSyncInterval());
   }
 
   // Expose switchTo for cross-module navigation (e.g. dashboard cards)
