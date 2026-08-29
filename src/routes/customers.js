@@ -95,21 +95,24 @@ router.get('/', (req, res) => {
   res.json(list.map(pubCustomer));
 });
 
-// Create
+// Create — name required; PII fields (phone/idCard/bankCard) are optional
+// so a customer record can be filed from a scanned ID card first and
+// the rest of the data filled in later. Format is still validated when
+// a value is provided.
 router.post('/', (req, res) => {
   const { hospital, name, idCard, bankCard, phone } = req.body || {};
   if (!name || !name.trim()) return res.status(400).json({ error: '姓名必填' });
-  if (!validatePhone(phone)) return res.status(400).json({ error: '手机号格式不正确（应为 11 位，1 开头）' });
-  if (!validateIdCard(idCard)) return res.status(400).json({ error: '身份证号格式不正确' });
-  if (!validateBank(bankCard)) return res.status(400).json({ error: '银行卡号格式不正确（12-19 位数字）' });
+  if (phone && !validatePhone(phone)) return res.status(400).json({ error: '手机号格式不正确（应为 11 位，1 开头）' });
+  if (idCard && !validateIdCard(idCard)) return res.status(400).json({ error: '身份证号格式不正确' });
+  if (bankCard && !validateBank(bankCard)) return res.status(400).json({ error: '银行卡号格式不正确（12-19 位数字）' });
   const now = new Date().toISOString();
   const c = {
     id: db.uid('c_'),
     hospital: (hospital || '').trim(),
     name: name.trim(),
-    idCardEnc: crypto.encrypt(idCard.trim()),
-    bankCardEnc: crypto.encrypt(bankCard.replace(/\s/g, '').trim()),
-    phone: phone.trim(),
+    idCardEnc: crypto.encrypt((idCard || '').trim()),
+    bankCardEnc: crypto.encrypt((bankCard || '').replace(/\s/g, '').trim()),
+    phone: (phone || '').trim(),
     attachments: { profile: [], identity: [] },
     createdAt: now,
     updatedAt: now
