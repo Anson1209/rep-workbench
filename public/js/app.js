@@ -4,6 +4,7 @@
   const { esc, toast } = window.UI;
 
   const ICON = {
+    dashboard: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 L12 3 L21 11 V20 a1 1 0 0 1 -1 1 H15 V14 H9 V21 H4 a1 1 0 0 1 -1 -1 Z"/></svg>',
     customers: '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M16 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm13 8v-1a4 4 0 0 0-3-3.87M16 3.13A4 4 0 0 1 16 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
     calendar: '<svg viewBox="0 0 24 24" width="20" height="20"><rect x="3" y="4" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 10h18M8 2v4M16 2v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
     survey: '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2M9 12h6M9 16h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
@@ -12,14 +13,15 @@
   };
 
   const NAV = [
+    { key: 'dashboard', label: '项目', icon: ICON.dashboard, title: '项目概览', module: 'Dashboard' },
     { key: 'customers', label: '客户资料', icon: ICON.customers, title: '客户资料', module: 'Customers' },
-    { key: 'calendar', label: '关键提醒', icon: ICON.calendar, title: '关键事宜提醒', module: 'Calendar' },
-    { key: 'survey', label: '调研台账', icon: ICON.survey, title: '问卷调研台账', module: 'Survey' },
-    { key: 'add', label: '添加板块', icon: ICON.add, title: '添加新板块', placeholder: true },
+    { key: 'calendar', label: '关键事宜', icon: ICON.calendar, title: '关键事宜提醒', module: 'Calendar' },
+    { key: 'survey', label: '问卷台账', icon: ICON.survey, title: '问卷调研台账', module: 'Survey' },
+    { key: 'add', label: '添加模块', icon: ICON.add, title: '添加新板块', placeholder: true },
     { key: 'settings', label: '设置', icon: ICON.settings, title: '设置', module: 'Settings' }
   ];
 
-  let current = 'customers';
+  let current = 'dashboard';
 
   function renderNav() {
     const nav = document.getElementById('nav');
@@ -47,14 +49,6 @@
     '</div>';
   }
 
-  async function updateStats() {
-    try {
-      const s = await window.API.stats();
-      document.getElementById('topbarStats').innerHTML =
-        '客户 <b>' + s.customers + '</b> · 提醒 <b>' + s.events + '</b> · 台账 <b>' + s.surveys + '</b>';
-    } catch (e) { /* ignore */ }
-  }
-
   async function switchTo(key) {
     const item = NAV.find(n => n.key === key);
     if (!item) return;
@@ -80,7 +74,6 @@
         view.innerHTML = '<div class="empty-state"><div class="big">⚠️</div>' + esc(e.message) + '</div>';
       }
     }
-    updateStats();
   }
 
   function openDrawer() {
@@ -91,6 +84,46 @@
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebarBackdrop').classList.remove('show');
   }
+
+  // ----- 同步指示器（顶栏右上角，双端同步状态） -----
+  function setSyncState(state, text) {
+    const el = document.getElementById('syncIndicator');
+    if (!el) return;
+    el.classList.remove('synced', 'syncing', 'error');
+    el.classList.add(state);
+    document.getElementById('syncText').textContent = text;
+  }
+
+  async function tickSync(silent) {
+    if (!silent) setSyncState('syncing', '同步中…');
+    try {
+      await window.API.stats();
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      setSyncState('synced', '已同步 ' + hh + ':' + mm);
+    } catch (e) {
+      if (e && (e.code === 'AUTH_REQUIRED' || e.status === 401)) {
+        setSyncState('error', '未登录');
+      } else {
+        setSyncState('error', '同步失败');
+      }
+    }
+  }
+
+  function initSync() {
+    const el = document.getElementById('syncIndicator');
+    if (!el) return;
+    el.addEventListener('click', () => {
+      tickSync(false);
+      toast('已触发同步', 'ok');
+    });
+    tickSync(true);
+    setInterval(() => tickSync(true), 30000);
+  }
+
+  // Expose switchTo for cross-module navigation (e.g. dashboard cards)
+  window.App = { switchTo: switchTo };
 
   // Verify login before showing the app. If no/invalid token, show the
   // login (or first-time setup) overlay and resolve only after success.
@@ -117,6 +150,11 @@
     document.getElementById('menuBtn').onclick = openDrawer;
     document.getElementById('sidebarBackdrop').onclick = closeDrawer;
     renderNav();
-    ensureAuth().then(ok => { if (ok) switchTo('customers'); });
+    ensureAuth().then(ok => {
+      if (ok) {
+        initSync();
+        switchTo('dashboard');
+      }
+    });
   });
 })();
