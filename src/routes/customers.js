@@ -7,7 +7,7 @@ const path = require('path');
 const db = require('../db');
 const crypto = require('../crypto');
 
-const UPLOAD_ROOT = path.join(__dirname, '..', '..', 'data', 'uploads');
+const UPLOAD_ROOT = path.join(process.env.DATA_DIR || process.env.RAILWAY_VOLUME_MOUNT_PATH || path.join(__dirname, '..', '..', 'data'), 'uploads');
 
 const ALLOWED_EXT = ['png', 'jpg', 'jpeg', 'doc', 'docx', 'xls', 'xlsx', 'pdf', 'ppt', 'pptx'];
 const MAX_SIZE = 25 * 1024 * 1024; // 25MB
