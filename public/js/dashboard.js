@@ -113,7 +113,30 @@
         alertText.textContent = '今日暂无待提醒的重要事宜';
       }
     } catch (e) {
-      document.getElementById('alertText').textContent = '数据加载失败：' + esc(e.message);
+      const isAuth = e && (e.code === 'AUTH_REQUIRED' || e.status === 401);
+      const alertText = document.getElementById('alertText');
+      const alertCard = document.getElementById('alertCard');
+      const alertBtn = document.getElementById('alertBtn');
+      if (isAuth) {
+        // Stale local token (Render was redeployed, etc.). Offer a one-click
+        // way to clear the token and re-trigger the auth overlay.
+        alertText.innerHTML = '当前登录已失效，请<a href="#" id="reloginNow" style="color:#b91c1c;text-decoration:underline">重新登录</a>';
+        if (alertBtn) alertBtn.style.display = 'none';
+        const link = document.getElementById('reloginNow');
+        if (link) {
+          link.addEventListener('click', function (ev) {
+            ev.preventDefault();
+            try { window.Auth.clearToken(); } catch (e) {}
+            if (window.Auth && window.Auth.showAuthUI) {
+              window.Auth.showAuthUI(function () { window.location.reload(); });
+            } else {
+              window.location.reload();
+            }
+          });
+        }
+      } else {
+        alertText.textContent = '数据加载失败：' + esc(e.message);
+      }
     }
   }
 
