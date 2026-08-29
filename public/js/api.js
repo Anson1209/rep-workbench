@@ -5,6 +5,8 @@
 
   async function req(method, url, body, isForm) {
     const opt = { method, headers: {} };
+    const token = window.Auth && window.Auth.getToken();
+    if (token) opt.headers['Authorization'] = 'Bearer ' + token;
     if (body !== undefined) {
       if (isForm) {
         opt.body = body; // FormData
@@ -18,7 +20,10 @@
     try { data = await res.json(); } catch (e) { data = null; }
     if (!res.ok) {
       const msg = (data && data.error) ? data.error : ('请求失败 (' + res.status + ')');
-      throw new Error(msg);
+      const err = new Error(msg);
+      err.status = res.status;
+      if (data && data.code) err.code = data.code;
+      throw err;
     }
     return data;
   }
