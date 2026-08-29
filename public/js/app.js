@@ -71,6 +71,12 @@
       try {
         await window[item.module].render(view);
       } catch (e) {
+        if (e && (e.code === 'AUTH_REQUIRED' || e.status === 401)) {
+          window.Auth.clearToken();
+          view.innerHTML = '';
+          window.Auth.showAuthUI(() => switchTo(current));
+          return;
+        }
         view.innerHTML = '<div class="empty-state"><div class="big">⚠️</div>' + esc(e.message) + '</div>';
       }
     }
@@ -86,10 +92,31 @@
     document.getElementById('sidebarBackdrop').classList.remove('show');
   }
 
+  // Verify login before showing the app. If no/invalid token, show the
+  // login (or first-time setup) overlay and resolve only after success.
+  async function ensureAuth() {
+    const token = window.Auth.getToken();
+    if (token) {
+      try {
+        await window.API.stats(); // protected; 401 => invalid token
+        return true;
+      } catch (e) {
+        if (e && (e.code === 'AUTH_REQUIRED' || e.status === 401)) {
+          window.Auth.clearToken();
+        } else {
+          return true; // network blip etc. — let the app try anyway
+        }
+      }
+    }
+    return await new Promise(resolve => {
+      window.Auth.showAuthUI(() => resolve(true));
+    });
+  }
+
   window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('menuBtn').onclick = openDrawer;
     document.getElementById('sidebarBackdrop').onclick = closeDrawer;
     renderNav();
-    switchTo('customers');
+    ensureAuth().then(ok => { if (ok) switchTo('customers'); });
   });
 })();
