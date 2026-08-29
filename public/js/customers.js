@@ -116,11 +116,11 @@
       '<div class="field"><label>医院名称</label><input class="input" id="f_hospital" value="' + esc(c.hospital || '') + '" placeholder="如：市第一人民医院"></div>' +
       '<div class="form-row">' +
         '<div class="field"><label>姓名 <span class="req">*</span></label><input class="input" id="f_name" value="' + esc(c.name || '') + '"></div>' +
-        '<div class="field"><label>手机号 <span class="req">*</span></label><input class="input" id="f_phone" value="' + esc(c.phone || '') + '" inputmode="numeric"></div>' +
+        '<div class="field"><label>手机号</label><input class="input" id="f_phone" value="' + esc(c.phone || '') + '" inputmode="numeric" placeholder="选填"></div>' +
       '</div>' +
       '<div class="form-row">' +
-        '<div class="field"><label>身份证号 <span class="req">*</span></label><input class="input" id="f_id" value="' + esc(c.idCard || '') + '"></div>' +
-        '<div class="field"><label>银行卡号 <span class="req">*</span></label><input class="input" id="f_bank" value="' + esc(c.bankCard || '') + '"></div>' +
+        '<div class="field"><label>身份证号</label><input class="input" id="f_id" value="' + esc(c.idCard || '') + '" placeholder="选填"></div>' +
+        '<div class="field"><label>银行卡号</label><input class="input" id="f_bank" value="' + esc(c.bankCard || '') + '" placeholder="选填"></div>' +
       '</div>' +
       '<div class="field-err" id="f_err"></div>';
   }
@@ -142,9 +142,9 @@
           };
           const err = document.getElementById('f_err');
           if (!data.name) { err.textContent = '姓名必填'; err.parentElement.classList.add('invalid'); return; }
-          if (!validPhone(data.phone)) { err.textContent = '手机号格式不正确（11 位，1 开头）'; err.parentElement.classList.add('invalid'); return; }
-          if (!validIdCard(data.idCard)) { err.textContent = '身份证号格式不正确（18 位）'; err.parentElement.classList.add('invalid'); return; }
-          if (!validBank(data.bankCard)) { err.textContent = '银行卡号格式不正确（12-19 位数字）'; err.parentElement.classList.add('invalid'); return; }
+          if (data.phone && !validPhone(data.phone)) { err.textContent = '手机号格式不正确（11 位，1 开头）'; err.parentElement.classList.add('invalid'); return; }
+          if (data.idCard && !validIdCard(data.idCard)) { err.textContent = '身份证号格式不正确（18 位）'; err.parentElement.classList.add('invalid'); return; }
+          if (data.bankCard && !validBank(data.bankCard)) { err.textContent = '银行卡号格式不正确（12-19 位数字）'; err.parentElement.classList.add('invalid'); return; }
           try {
             if (isNew) await window.API.createCustomer(data);
             else await window.API.updateCustomer(c.id, data);
