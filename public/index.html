@@ -36,10 +36,21 @@
           <svg viewBox="0 0 24 24" width="22" height="22"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
         <h1 class="topbar-title" id="topbarTitle">项目概览</h1>
-        <button class="sync-indicator" id="syncIndicator" title="点击手动同步（双端实时同步）">
-          <span class="sync-dot" id="syncDot"></span>
-          <span class="sync-text" id="syncText">同步中…</span>
-        </button>
+        <div class="sync-wrap">
+          <button class="sync-indicator" id="syncIndicator" title="点击手动同步 / 设置同步间隔（双端实时同步）" aria-haspopup="true" aria-expanded="false">
+            <span class="sync-dot" id="syncDot"></span>
+            <span class="sync-text" id="syncText">同步中…</span>
+            <svg class="sync-caret" viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="sync-menu" id="syncMenu" role="menu" aria-hidden="true">
+            <div class="sync-menu-title">同步间隔（手动）</div>
+            <button class="sync-opt" type="button" role="menuitemradio" data-min="1">1 分钟</button>
+            <button class="sync-opt" type="button" role="menuitemradio" data-min="10">10 分钟</button>
+            <button class="sync-opt" type="button" role="menuitemradio" data-min="30">30 分钟</button>
+            <div class="sync-menu-sep"></div>
+            <button class="sync-opt sync-now" type="button" id="syncNowBtn" role="menuitem">立即同步</button>
+          </div>
+        </div>
       </header>
       <section class="view" id="view"></section>
     </div>
