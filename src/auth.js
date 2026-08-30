@@ -53,14 +53,17 @@ function isConfigured() {
   return !!loadAuth();
 }
 
-// 冷启动自愈：auth.json 缺失（Render 免费档清盘）时，自动初始化访问密码。
-// 优先用 APP_PASSWORD 环境变量；未设置则回退到约定密码 891209，
-// 保证公开站永远可登录、不再卡在"未授权"。
+// 冷启动自愈：保证公开站永远可用约定密码(891209)登录，不再卡"未授权"。
+// 单用户工作台，密码固定 891209——因此无论 auth.json 是"缺失"(Render 清盘)
+// 还是"已存在但密码不对"(旧实例/旧数据残留)，都强制纠正为约定密码。
+// 设了 APP_PASSWORD 环境变量则以环境变量为准。
 function ensureInitial() {
-  if (isConfigured()) return;
   const envPw = process.env.APP_PASSWORD || '891209';
-  if (envPw && envPw.length >= 6) {
-    try { setPassword(envPw); } catch (e) { /* ignore */ }
+  // 未配置，或已配置但当前密码不是约定值 → 强制重置为约定密码。
+  if (!isConfigured() || !verifyPassword(envPw)) {
+    if (envPw && envPw.length >= 6) {
+      try { setPassword(envPw); } catch (e) { /* ignore */ }
+    }
   }
 }
 
