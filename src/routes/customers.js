@@ -42,12 +42,20 @@ function validateBank(v) {
 
 function pubCustomer(c) {
   // masked view for lists
+  const bankNamePlain = (c.bankName || '').trim();
+  // 开户行不算高敏 PII，但为与其他敏感字段统一体验，受"显隐"按钮控制；
+  // 列表脱敏处理：非空 → 仅显示前 2 字 + "..."（避免一眼看懂银行全名）
+  let bankNameMask = '—';
+  if (bankNamePlain) {
+    bankNameMask = bankNamePlain.length <= 2 ? bankNamePlain : (bankNamePlain.slice(0, 2) + '…');
+  }
   return {
     id: c.id,
     hospital: c.hospital,
     name: c.name,
     idCardMask: crypto.maskIdCard(crypto.decrypt(c.idCardEnc)),
     bankCardMask: crypto.maskBankCard(crypto.decrypt(c.bankCardEnc)),
+    bankNameMask,
     phoneMask: crypto.maskPhone(c.phone),
     phone: c.phone,
     attachments: {
@@ -65,6 +73,7 @@ function fullCustomer(c) {
     name: c.name,
     idCard: crypto.decrypt(c.idCardEnc),
     bankCard: crypto.decrypt(c.bankCardEnc),
+    bankName: c.bankName || '',
     phone: c.phone,
     attachments: {
       profile: (c.attachments.profile || []).map(stripFile),
@@ -99,12 +108,12 @@ router.get('/', (req, res) => {
   res.json(list.map(pubCustomer));
 });
 
-// Create — name required; PII fields (phone/idCard/bankCard) are optional
+// Create — name required; PII fields (phone/idCard/bankCard/bankName) are optional
 // so a customer record can be filed from a scanned ID card first and
 // the rest of the data filled in later. Format is still validated when
 // a value is provided.
 router.post('/', (req, res) => {
-  const { hospital, name, idCard, bankCard, phone } = req.body || {};
+  const { hospital, name, idCard, bankCard, bankName, phone } = req.body || {};
   if (!name || !name.trim()) return res.status(400).json({ error: '姓名必填' });
   if (phone && !validatePhone(phone)) return res.status(400).json({ error: '手机号格式不正确（应为 11 位，1 开头）' });
   if (idCard && !validateIdCard(idCard)) return res.status(400).json({ error: '身份证号格式不正确' });
@@ -116,6 +125,7 @@ router.post('/', (req, res) => {
     name: name.trim(),
     idCardEnc: crypto.encrypt((idCard || '').trim()),
     bankCardEnc: crypto.encrypt((bankCard || '').replace(/\s/g, '').trim()),
+    bankName: (bankName || '').trim().slice(0, 40), // 简单长度限制防滥用
     phone: (phone || '').trim(),
     attachments: { profile: [], identity: [] },
     createdAt: now,
@@ -136,23 +146,29 @@ router.get('/:id', (req, res) => {
 router.get('/:id/reveal', (req, res) => {
   const c = db.getCollection('customers').find(x => x.id === req.params.id);
   if (!c) return res.status(404).json({ error: '未找到客户' });
-  res.json({ idCard: crypto.decrypt(c.idCardEnc), bankCard: crypto.decrypt(c.bankCardEnc), phone: c.phone });
+  res.json({
+    idCard: crypto.decrypt(c.idCardEnc),
+    bankCard: crypto.decrypt(c.bankCardEnc),
+    bankName: c.bankName || '',
+    phone: c.phone
+  });
 });
 
 // Update
 router.put('/:id', (req, res) => {
   const c = db.getCollection('customers').find(x => x.id === req.params.id);
   if (!c) return res.status(404).json({ error: '未找到客户' });
-  const { hospital, name, idCard, bankCard, phone } = req.body || {};
-  if (phone !== undefined && !validatePhone(phone)) return res.status(400).json({ error: '手机号格式不正确' });
-  if (idCard !== undefined && !validateIdCard(idCard)) return res.status(400).json({ error: '身份证号格式不正确' });
-  if (bankCard !== undefined && !validateBank(bankCard)) return res.status(400).json({ error: '银行卡号格式不正确' });
+  const { hospital, name, idCard, bankCard, bankName, phone } = req.body || {};
+  if (phone !== undefined && phone && !validatePhone(phone)) return res.status(400).json({ error: '手机号格式不正确' });
+  if (idCard !== undefined && idCard && !validateIdCard(idCard)) return res.status(400).json({ error: '身份证号格式不正确' });
+  if (bankCard !== undefined && bankCard && !validateBank(bankCard)) return res.status(400).json({ error: '银行卡号格式不正确' });
   if (name !== undefined && !name.trim()) return res.status(400).json({ error: '姓名必填' });
   if (hospital !== undefined) c.hospital = hospital.trim();
   if (name !== undefined) c.name = name.trim();
   if (phone !== undefined) c.phone = phone.trim();
   if (idCard !== undefined) c.idCardEnc = crypto.encrypt(idCard.trim());
   if (bankCard !== undefined) c.bankCardEnc = crypto.encrypt(bankCard.replace(/\s/g, '').trim());
+  if (bankName !== undefined) c.bankName = (bankName || '').trim().slice(0, 40);
   c.updatedAt = new Date().toISOString();
   db.save().then(() => res.json(fullCustomer(c))).catch(e => res.status(500).json({ error: e.message }));
 });
