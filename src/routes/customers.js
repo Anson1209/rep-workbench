@@ -170,7 +170,7 @@ router.delete('/:id', (req, res) => {
 });
 
 // Upload attachment
-router.post('/:id/attachments', upload.single('file'), (req, res) => {
+router.post('/:id/attachments', upload.single('file'), async (req, res) => {
   const c = db.getCollection('customers').find(x => x.id === req.params.id);
   if (!c) return res.status(404).json({ error: '未找到客户' });
   const section = req.query.section === 'identity' ? 'identity' : 'profile';
@@ -182,9 +182,6 @@ router.post('/:id/attachments', upload.single('file'), (req, res) => {
   try { rawName = Buffer.from(rawName, 'latin1').toString('utf8'); } catch (e) {}
   const safeName = rawName.replace(/[^\w.\u4e00-\u9fa5-]/g, '_');
   const storedName = db.uid('f_') + '.' + ext;
-  const dir = path.join(UPLOAD_ROOT, c.id, section);
-  fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, storedName), req.file.buffer);
   const meta = {
     id: db.uid('a_'),
     name: safeName,
@@ -195,13 +192,37 @@ router.post('/:id/attachments', upload.single('file'), (req, res) => {
     isImage: isImage(req.file.mimetype, ext),
     uploadedAt: new Date().toISOString()
   };
-  c.attachments[section].push(meta);
+  // 同名替换：先把旧的(meta + 字节)删掉，避免每次重传堆积 ghost
+  const arr = c.attachments[section] || (c.attachments[section] = []);
+  const oldIdx = arr.findIndex(f => f.name === safeName);
+  if (oldIdx >= 0) {
+    const old = arr[oldIdx];
+    if (db.isPg()) { try { await db.deleteFile(old.id); } catch (e) {} }
+    else { try { fs.rm(path.join(UPLOAD_ROOT, c.id, section, old.storedName), { force: true }, () => {}); } catch (e) {} }
+    arr.splice(oldIdx, 1);
+  }
+  // 存字节：PG 模式进 Neon BYTEA(持久)；否则写本地磁盘
+  if (db.isPg()) {
+    try {
+      await db.putFile({
+        id: meta.id, customer_id: c.id, section,
+        stored_name: storedName, mime_type: meta.mimeType, size: meta.size, data: req.file.buffer
+      });
+    } catch (e) {
+      return res.status(500).json({ error: '文件存储失败: ' + e.message });
+    }
+  } else {
+    const dir = path.join(UPLOAD_ROOT, c.id, section);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, storedName), req.file.buffer);
+  }
+  arr.push(meta);
   c.updatedAt = new Date().toISOString();
   db.save().then(() => res.json(stripFile(meta))).catch(e => res.status(500).json({ error: e.message }));
 });
 
 // Delete attachment
-router.delete('/attachments/:fileId', (req, res) => {
+router.delete('/attachments/:fileId', async (req, res) => {
   const col = db.getCollection('customers');
   for (const c of col) {
     for (const section of ['profile', 'identity']) {
@@ -209,8 +230,8 @@ router.delete('/attachments/:fileId', (req, res) => {
       const idx = arr.findIndex(f => f.id === req.params.fileId);
       if (idx >= 0) {
         const [f] = arr.splice(idx, 1);
-        const fp = path.join(UPLOAD_ROOT, c.id, section, f.storedName);
-        fs.rm(fp, { force: true }, () => {});
+        if (db.isPg()) { try { await db.deleteFile(f.id); } catch (e) {} }
+        else { try { fs.rm(path.join(UPLOAD_ROOT, c.id, section, f.storedName), { force: true }, () => {}); } catch (e) {} }
         db.save().then(() => res.json({ ok: true })).catch(e => res.status(500).json({ error: e.message }));
         return;
       }
