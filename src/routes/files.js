@@ -17,16 +17,28 @@ function findFile(fileId) {
   return null;
 }
 
-router.get('/:fileId', (req, res) => {
+router.get('/:fileId', async (req, res) => {
   const found = findFile(req.params.fileId);
   if (!found) return res.status(404).json({ error: '文件不存在' });
-  const fp = path.join(UPLOAD_ROOT, found.customerId, found.section, found.f.storedName);
-  if (!fs.existsSync(fp)) return res.status(404).json({ error: '文件已丢失' });
+  let buf = null;
+  const mime = found.f.mimeType || 'application/octet-stream';
+  if (db.isPg()) {
+    // PG 模式：字节在 Neon BYTEA，冷启动/重启/deploy 都不丢
+    const rec = await db.getFileBytes(found.f.id);
+    if (!rec) return res.status(404).json({ error: '文件已丢失' });
+    buf = rec.data; // Buffer
+    if (rec.mimeType) res.setHeader('Content-Type', rec.mimeType);
+    else res.setHeader('Content-Type', mime);
+  } else {
+    const fp = path.join(UPLOAD_ROOT, found.customerId, found.section, found.f.storedName);
+    if (!fs.existsSync(fp)) return res.status(404).json({ error: '文件已丢失' });
+    buf = fs.readFileSync(fp);
+    res.setHeader('Content-Type', mime);
+  }
   const download = req.query.download === '1';
-  res.setHeader('Content-Type', found.f.mimeType || 'application/octet-stream');
   const disp = download ? 'attachment' : 'inline';
   res.setHeader('Content-Disposition', `${disp}; filename*=UTF-8''${encodeURIComponent(found.f.name)}`);
-  fs.createReadStream(fp).pipe(res);
+  res.send(buf);
 });
 
 module.exports = router;
