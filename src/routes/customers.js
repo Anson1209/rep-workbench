@@ -75,9 +75,13 @@ function fullCustomer(c) {
   };
 }
 function stripFile(f) {
+  // 重新根据 mimeType / 扩展名计算 isImage，避免依赖存储字段（老数据可能错误）
+  const ext = ((f.name || '').split('.').pop() || '').toLowerCase();
+  const mime = f.mimeType || '';
+  const isImg = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'].includes(ext) || /^image\//i.test(mime);
   return {
     id: f.id, name: f.name, mimeType: f.mimeType,
-    size: f.size, section: f.section, uploadedAt: f.uploadedAt, isImage: f.isImage
+    size: f.size, section: f.section, uploadedAt: f.uploadedAt, isImage: isImg
   };
 }
 
