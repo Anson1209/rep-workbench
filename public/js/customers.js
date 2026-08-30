@@ -3,7 +3,7 @@
   'use strict';
   const { esc, toast, modal, confirm, validPhone, validIdCard, validBank, initials, fileIcon, fmtSize } = window.UI;
 
-  const state = { q: '', list: [], reveal: {} };
+  const state = { q: '', list: [], reveal: {}, blobCache: {} };
 
   function metaRow(k, v, sensitive) {
     return '<div class="row"><span class="k">' + esc(k) + '</span>' +
@@ -31,7 +31,7 @@
 
   function attachItemHTML(c, f) {
     const thumb = f.isImage
-      ? '<img class="attach-thumb" src="' + window.API.fileUrl(f.id) + '" alt="">'
+      ? '<img class="attach-thumb" data-thumb-for="' + f.id + '" alt="" src="">'
       : '<span class="attach-thumb">' + fileIcon(f.name.split('.').pop(), false) + '</span>';
     const previewOp = f.isImage
       ? '<button class="btn btn-sm" data-act="prev" data-id="' + f.id + '">预览</button>'
@@ -108,6 +108,28 @@
       return;
     }
     grid.innerHTML = state.list.map(cardHTML).join('');
+    await hydrateThumbs(grid);
+  }
+
+  // 异步给缩略图 <img data-thumb-for> 注入 Object URL。
+  // 走带 Authorization 头的 fetch，避免触发 /api 全局守卫的 401。
+  async function hydrateThumbs(root) {
+    if (!root) return;
+    const imgs = root.querySelectorAll('img[data-thumb-for]');
+    imgs.forEach(im => {
+      const fid = im.getAttribute('data-thumb-for');
+      if (!fid || im.dataset.loaded === '1') return;
+      const cached = state.blobCache[fid];
+      if (cached) { im.src = cached.url; im.dataset.loaded = '1'; return; }
+      window.API.fetchFileBlob(fid).then(({ url }) => {
+        state.blobCache[fid] = { url };
+        im.src = url;
+        im.dataset.loaded = '1';
+      }).catch(() => {
+        im.dataset.loaded = '1';
+        im.alt = '加载失败';
+      });
+    });
   }
 
   function formHTML(c) {
@@ -156,14 +178,16 @@
     });
   }
 
-  function previewImage(fileId) {
-    const url = window.API.fileUrl(fileId);
+  function previewImage(url, name) {
     modal({
-      title: '图片预览', center: true,
+      title: '图片预览 — ' + (name || ''), center: true,
       body: '<div style="text-align:center"><img src="' + url + '" style="max-width:100%;max-height:70vh;border-radius:10px"></div>',
       footer: [{ label: '关闭', cls: 'btn-primary', onClick: (c) => c() }]
     });
   }
+
+  // 释放在预览/打开/下载后已用的 Object URL，避免长会话泄漏内存
+  function _revokeLater(url, ms) { setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) {} }, ms || 30000); }
 
   async function handleClick(e) {
     const t = e.target.closest('[data-act]');
@@ -188,11 +212,25 @@
     } else if (act === 'hide') {
       delete state.reveal[id]; loadGrid();
     } else if (act === 'prev') {
-      previewImage(id);
+      try {
+        const { url, name } = await window.API.fetchFileBlob(id);
+        previewImage(url, name);
+      } catch (e) { toast(e.message, 'err'); }
     } else if (act === 'open') {
-      window.open(window.API.fileUrl(id), '_blank');
+      try {
+        const { url, name } = await window.API.fetchFileBlob(id);
+        const w = window.open(url, '_blank');
+        _revokeLater(url);
+        if (!w) toast('已准备就绪，请允许弹出窗口后查看 ' + name, 'ok');
+      } catch (e) { toast(e.message, 'err'); }
     } else if (act === 'dl') {
-      window.location.href = window.API.fileUrl(id, true);
+      try {
+        const { url, name } = await window.API.fetchFileBlob(id);
+        const a = document.createElement('a');
+        a.href = url; a.download = name;
+        document.body.appendChild(a); a.click(); a.remove();
+        _revokeLater(url);
+      } catch (e) { toast(e.message, 'err'); }
     } else if (act === 'del') {
       if (await confirm('确定删除该附件？', true)) {
         try { await window.API.deleteAttachment(id); toast('附件已删除', 'ok'); loadGrid(); }

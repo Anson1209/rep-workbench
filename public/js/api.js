@@ -71,6 +71,30 @@
     deleteAttachment: (fileId) => req('DELETE', '/api/attachments/' + fileId),
     fileUrl: (fileId, download) => '/api/files/' + fileId + (download ? '?download=1' : ''),
 
+    // Authenticated file fetch — required because the global /api guard
+    // denies any /api/files/* request without an Authorization header.
+    // Returns a Blob + an Object URL we can hand to <img>/<a>/window.open().
+    async fetchFileBlob(fileId) {
+      const token = window.Auth && window.Auth.getToken();
+      const headers = {};
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+      const res = await fetch('/api/files/' + fileId, { headers });
+      if (!res.ok) {
+        if (res.status === 401) {
+          _maybeReauth();
+          throw new Error('未授权，请先登录');
+        }
+        let msg = '文件加载失败';
+        try { const d = await res.json(); if (d && d.error) msg = d.error; } catch (e) {}
+        throw new Error(msg);
+      }
+      const blob = await res.blob();
+      const disp = res.headers.get('Content-Disposition') || '';
+      const m = disp.match(/filename\*=UTF-8''([^;]+)/);
+      const name = m ? decodeURIComponent(m[1]) : 'file';
+      return { blob, url: URL.createObjectURL(blob), name };
+    },
+
     // Events
     listEvents: () => req('GET', '/api/events'),
     createEvent: (d) => req('POST', '/api/events', d),
