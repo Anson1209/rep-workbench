@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   // Build fingerprint — 在浏览器 F12 控制台里看，用来判断线上是不是最新代码
-  console.log('%c[rep-workbench] build 212e0d1 · 2026-08-30 21:38 · 附件走鉴权fetch+blob', 'background:#0a7;color:#fff;padding:2px 6px;border-radius:4px');
+  console.log('%c[rep-workbench] build 8e3c1a7 · 2026-08-30 22:30 · 干掉"打开"按钮(被弹窗拦截)，下载按钮加loading反馈', 'background:#0a7;color:#fff;padding:2px 6px;border-radius:4px');
 
   const { esc, toast } = window.UI;
 
