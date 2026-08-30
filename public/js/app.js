@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   // Build fingerprint — 在浏览器 F12 控制台里看，用来判断线上是不是最新代码
-  console.log('%c[rep-workbench] build a7b3c12 · 2026-08-30 23:35 · 客户资料新增【开户行】字段(明文存储，受显隐控制，列表脱敏前2字)', 'background:#0a7;color:#fff;padding:2px 6px;border-radius:4px');
+  console.log('%c[rep-workbench] build b4f8e29 · 2026-08-30 23:40 · 客户资料按医院分组展示(医院聚合 + 数量徽章，空医院归末位)', 'background:#0a7;color:#fff;padding:2px 6px;border-radius:4px');
 
   const { esc, toast } = window.UI;
 
