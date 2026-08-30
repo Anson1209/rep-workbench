@@ -115,8 +115,44 @@
       grid.innerHTML = '<div class="empty-state"><div class="big">👥</div>还没有客户记录，点击右上角「新增客户」开始</div>';
       return;
     }
-    grid.innerHTML = state.list.map(cardHTML).join('');
+    grid.innerHTML = groupByHospital(state.list).map(groupBlockHTML).join('');
     await hydrateThumbs(grid);
+  }
+
+  // 按医院分组：空医院放最后；医院名字典序升序；同医院内按客户 id（创建时间）排序
+  function groupByHospital(list) {
+    const buckets = new Map();
+    for (const c of list) {
+      const k = (c.hospital || '').trim() || '∅未填写医院';
+      if (!buckets.has(k)) buckets.set(k, []);
+      buckets.get(k).push(c);
+    }
+    for (const arr of buckets.values()) {
+      arr.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    }
+    return Array.from(buckets.entries())
+      .sort(([a], [b]) => {
+        if (a === '∅未填写医院') return 1;
+        if (b === '∅未填写医院') return -1;
+        return a.localeCompare(b, 'zh-Hans-CN');
+      })
+      .map(([key, items]) => ({
+        key,
+        hospital: key === '∅未填写医院' ? '' : key,
+        isEmpty: key === '∅未填写医院',
+        items
+      }));
+  }
+
+  function groupBlockHTML(g) {
+    return '' +
+      '<div class="g-block' + (g.isEmpty ? ' empty-group' : '') + '">' +
+        '<div class="g-head">' +
+          '<span class="h-name">' + esc(g.hospital || '未填写医院') + '</span>' +
+          '<span class="h-count">' + g.items.length + ' 人</span>' +
+        '</div>' +
+        '<div class="grid">' + g.items.map(cardHTML).join('') + '</div>' +
+      '</div>';
   }
 
   // 异步给缩略图 <img data-thumb-for> 注入 Object URL。
