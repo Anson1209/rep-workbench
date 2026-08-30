@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   // Build fingerprint — 在浏览器 F12 控制台里看，用来判断线上是不是最新代码
-  console.log('%c[rep-workbench] build 7f2c9dd · 2026-08-30 23:05 · 附件字节改存Neon BYTEA(根治redeploy丢失)，上传同名自动替换', 'background:#0a7;color:#fff;padding:2px 6px;border-radius:4px');
+  console.log('%c[rep-workbench] build a7b3c12 · 2026-08-30 23:35 · 客户资料新增【开户行】字段(明文存储，受显隐控制，列表脱敏前2字)', 'background:#0a7;color:#fff;padding:2px 6px;border-radius:4px');
 
   const { esc, toast } = window.UI;
 
