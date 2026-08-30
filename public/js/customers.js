@@ -56,6 +56,10 @@
     const revealed = state.reveal[c.id];
     const idv = revealed ? (revealed.idCard || '—') : c.idCardMask;
     const bv = revealed ? (revealed.bankCard || '—') : c.bankCardMask;
+    // 开户行：revealed 用真值，否则用列表脱敏（前 2 字 + …），未填写显示 —
+    const bnv = revealed
+      ? (revealed.bankName || '—')
+      : (c.bankNameMask || '—');
     const pv = revealed ? c.phone : c.phoneMask;
     const revealBtn = revealed
       ? '<button class="btn btn-sm btn-ghost" data-act="hide" data-id="' + c.id + '">隐藏</button>'
@@ -71,6 +75,7 @@
           metaRow('手机号', pv, true) +
           metaRow('身份证', idv, true) +
           metaRow('银行卡', bv, true) +
+          metaRow('开户行', bnv, true) +
         '</div>' +
         '<div class="flex" style="margin-top:10px;gap:8px;flex-wrap:wrap">' + revealBtn +
           '<button class="btn btn-sm" data-act="edit" data-id="' + c.id + '">编辑</button>' +
@@ -147,6 +152,18 @@
         '<div class="field"><label>身份证号</label><input class="input" id="f_id" value="' + esc(c.idCard || '') + '" placeholder="选填"></div>' +
         '<div class="field"><label>银行卡号</label><input class="input" id="f_bank" value="' + esc(c.bankCard || '') + '" placeholder="选填"></div>' +
       '</div>' +
+      '<div class="form-row">' +
+        '<div class="field"><label>开户行</label>' +
+          '<input class="input" id="f_bankname" value="' + esc(c.bankName || '') + '" placeholder="选填，如：中国工商银行淮安分行" list="bankNameList">' +
+          '<datalist id="bankNameList">' +
+            '<option value="中国工商银行"><option value="中国农业银行"><option value="中国银行"><option value="中国建设银行">' +
+            '<option value="交通银行"><option value="中国邮政储蓄银行"><option value="招商银行"><option value="浦发银行">' +
+            '<option value="中信银行"><option value="中国民生银行"><option value="兴业银行"><option value="光大银行">' +
+            '<option value="华夏银行"><option value="广发银行"><option value="平安银行"><option value="江苏银行">' +
+            '<option value="南京银行"><option value="上海银行"><option value="北京银行"><option value="农村商业银行">' +
+          '</datalist>' +
+        '</div>' +
+      '</div>' +
       '<div class="field-err" id="f_err"></div>';
   }
 
@@ -163,7 +180,8 @@
             name: document.getElementById('f_name').value.trim(),
             phone: document.getElementById('f_phone').value.trim(),
             idCard: document.getElementById('f_id').value.trim(),
-            bankCard: document.getElementById('f_bank').value.trim()
+            bankCard: document.getElementById('f_bank').value.trim(),
+            bankName: document.getElementById('f_bankname').value.trim()
           };
           const err = document.getElementById('f_err');
           if (!data.name) { err.textContent = '姓名必填'; err.parentElement.classList.add('invalid'); return; }
@@ -230,7 +248,7 @@
     } else if (act === 'reveal') {
       try {
         const full = await window.API.getCustomer(id);
-        state.reveal[id] = { idCard: full.idCard, bankCard: full.bankCard };
+        state.reveal[id] = { idCard: full.idCard, bankCard: full.bankCard, bankName: full.bankName };
         loadGrid();
       } catch (e) { toast(e.message, 'err'); }
     } else if (act === 'hide') {
