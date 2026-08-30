@@ -30,19 +30,22 @@
   }
 
   function attachItemHTML(c, f) {
+    const ext = (f.name || '').split('.').pop().toLowerCase();
     const thumb = f.isImage
       ? '<img class="attach-thumb" data-thumb-for="' + f.id + '" alt="" src="">'
-      : '<span class="attach-thumb">' + fileIcon(f.name.split('.').pop(), false) + '</span>';
-    const previewOp = f.isImage
+      : '<span class="attach-thumb">' + fileIcon(ext, false) + '</span>';
+    // 纯前端可信可达：图片给"预览"(modal，不依赖弹窗拦截)，所有文件都给"下载"。
+    // 之前"打开"按钮调 window.open，浏览器默认拦截 → 用户体验是"按了没反应"。
+    const previewBtn = f.isImage
       ? '<button class="btn btn-sm" data-act="prev" data-id="' + f.id + '">预览</button>'
-      : '<button class="btn btn-sm" data-act="open" data-id="' + f.id + '">打开</button>';
+      : '';
     return '' +
       '<div class="attach-item">' +
         thumb +
         '<div class="attach-info"><div class="n">' + esc(f.name) + '</div>' +
           '<div class="s">' + fmtSize(f.size) + '</div></div>' +
         '<div class="attach-ops">' +
-          previewOp +
+          previewBtn +
           '<button class="btn btn-sm" data-act="dl" data-id="' + f.id + '">下载</button>' +
           '<button class="btn btn-sm btn-danger" data-act="del" data-id="' + f.id + '">删除</button>' +
         '</div>' +
@@ -189,6 +192,22 @@
   // 释放在预览/打开/下载后已用的 Object URL，避免长会话泄漏内存
   function _revokeLater(url, ms) { setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) {} }, ms || 30000); }
 
+  async function _fetchFileWithBtn(btn, fileId) {
+    const oldText = btn ? btn.textContent : '';
+    const oldDisabled = btn ? btn.disabled : false;
+    if (btn) { btn.disabled = true; btn.textContent = '加载中…'; }
+    try {
+      const r = await window.API.fetchFileBlob(fileId);
+      if (btn) { btn.textContent = '已下载 ✓'; }
+      try { URL.revokeObjectURL(r.url); } catch (e) {}
+      if (btn) setTimeout(() => { btn.textContent = oldText; btn.disabled = oldDisabled; }, 1500);
+      return r;
+    } catch (e) {
+      if (btn) { btn.textContent = oldText; btn.disabled = oldDisabled; }
+      throw e;
+    }
+  }
+
   async function handleClick(e) {
     const t = e.target.closest('[data-act]');
     if (!t) return;
@@ -213,24 +232,20 @@
       delete state.reveal[id]; loadGrid();
     } else if (act === 'prev') {
       try {
-        const { url, name } = await window.API.fetchFileBlob(id);
+        const { url, name } = await _fetchFileWithBtn(t, id);
         previewImage(url, name);
-      } catch (e) { toast(e.message, 'err'); }
-    } else if (act === 'open') {
-      try {
-        const { url, name } = await window.API.fetchFileBlob(id);
-        const w = window.open(url, '_blank');
-        _revokeLater(url);
-        if (!w) toast('已准备就绪，请允许弹出窗口后查看 ' + name, 'ok');
-      } catch (e) { toast(e.message, 'err'); }
+        toast('已加载 ' + name, 'ok');
+      } catch (e) { toast(e.message || '预览失败', 'err'); }
     } else if (act === 'dl') {
+      // 用原生 <a download> 触发——浏览器不会拦截（区别于 window.open）。
+      // 按钮立刻给"加载中…"反馈，让用户明确知道已被点中。
       try {
-        const { url, name } = await window.API.fetchFileBlob(id);
+        const { url, name } = await _fetchFileWithBtn(t, id);
         const a = document.createElement('a');
-        a.href = url; a.download = name;
+        a.href = url; a.download = name; a.rel = 'noopener';
         document.body.appendChild(a); a.click(); a.remove();
-        _revokeLater(url);
-      } catch (e) { toast(e.message, 'err'); }
+        toast('已下载 ' + name, 'ok');
+      } catch (e) { toast(e.message || '下载失败', 'err'); }
     } else if (act === 'del') {
       if (await confirm('确定删除该附件？', true)) {
         try { await window.API.deleteAttachment(id); toast('附件已删除', 'ok'); loadGrid(); }
