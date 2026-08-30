@@ -192,20 +192,25 @@
   // 释放在预览/打开/下载后已用的 Object URL，避免长会话泄漏内存
   function _revokeLater(url, ms) { setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) {} }, ms || 30000); }
 
+  // 仅负责 fetch + 按钮 loading 反馈；**绝不在此 revoke URL**，
+  // 否则调用方（下载/预览）拿到的是已失效的 blob，会下载到 0 字节。
   async function _fetchFileWithBtn(btn, fileId) {
     const oldText = btn ? btn.textContent : '';
     const oldDisabled = btn ? btn.disabled : false;
     if (btn) { btn.disabled = true; btn.textContent = '加载中…'; }
     try {
       const r = await window.API.fetchFileBlob(fileId);
-      if (btn) { btn.textContent = '已下载 ✓'; }
-      try { URL.revokeObjectURL(r.url); } catch (e) {}
-      if (btn) setTimeout(() => { btn.textContent = oldText; btn.disabled = oldDisabled; }, 1500);
       return r;
     } catch (e) {
       if (btn) { btn.textContent = oldText; btn.disabled = oldDisabled; }
       throw e;
     }
+  }
+
+  function _btnDone(btn, doneText, oldText) {
+    if (!btn) return;
+    btn.textContent = doneText;
+    setTimeout(() => { btn.textContent = oldText || '下载'; btn.disabled = false; }, 1500);
   }
 
   async function handleClick(e) {
@@ -235,16 +240,22 @@
         const { url, name } = await _fetchFileWithBtn(t, id);
         previewImage(url, name);
         toast('已加载 ' + name, 'ok');
+        // 预览用：图片要持续显示，长延迟回收（用户关掉 modal 前不会失效）
+        _revokeLater(url, 60000);
       } catch (e) { toast(e.message || '预览失败', 'err'); }
     } else if (act === 'dl') {
       // 用原生 <a download> 触发——浏览器不会拦截（区别于 window.open）。
-      // 按钮立刻给"加载中…"反馈，让用户明确知道已被点中。
+      // 按钮立刻给"加载中…"反馈，下载后变"已下载 ✓"，让用户明确知道已被点中。
       try {
+        const oldText = t.textContent;
         const { url, name } = await _fetchFileWithBtn(t, id);
         const a = document.createElement('a');
         a.href = url; a.download = name; a.rel = 'noopener';
         document.body.appendChild(a); a.click(); a.remove();
+        _btnDone(t, '已下载 ✓', oldText);
         toast('已下载 ' + name, 'ok');
+        // 必须等 click 触发下载之后再回收，否则浏览器拿到的是已失效的 blob
+        _revokeLater(url, 2000);
       } catch (e) { toast(e.message || '下载失败', 'err'); }
     } else if (act === 'del') {
       if (await confirm('确定删除该附件？', true)) {
