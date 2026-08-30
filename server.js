@@ -101,11 +101,18 @@ app.get('/api/stats', (req, res) => {
   });
 });
 
-// Static frontend
-app.use(express.static(path.join(__dirname, 'public')));
+// Static frontend — 禁用强缓存，确保每次部署后用户普通刷新即可拿到新 JS/CSS
+app.use(express.static(path.join(__dirname, 'public'), {
+  setHeaders: (res, filePath) => {
+    if (/\.(js|css|html)$/.test(filePath)) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    }
+  }
+}));
 
 // SPA fallback
 app.get('*', (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
