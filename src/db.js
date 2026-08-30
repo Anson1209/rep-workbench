@@ -95,6 +95,52 @@ async function ensurePgSchema() {
     await c.query(
       'CREATE TABLE IF NOT EXISTS wb_store (key TEXT PRIMARY KEY, data JSONB, updated_at TIMESTAMPTZ DEFAULT now())'
     );
+    // 附件二进制存 BYTEA —— Render 免费档临时盘不持久，附件字节必须进外部库才不会在 redeploy/重启后丢失
+    await c.query(
+      `CREATE TABLE IF NOT EXISTS wb_files (
+        id TEXT PRIMARY KEY,
+        customer_id TEXT,
+        section TEXT,
+        stored_name TEXT,
+        mime_type TEXT,
+        size INT,
+        data BYTEA,
+        created_at TIMESTAMPTZ DEFAULT now()
+      )`
+    );
+  } finally { c.release(); }
+}
+
+// ---------- 附件字节(BYTEA) 读写，仅 PG 模式可用 ----------
+async function putFile(rec) {
+  if (!(USE_PG && pgAvailable && pgPool)) return false;
+  const c = await pgPool.connect();
+  try {
+    await c.query(
+      `INSERT INTO wb_files(id, customer_id, section, stored_name, mime_type, size, data, created_at)
+       VALUES($1,$2,$3,$4,$5,$6,$7,now())
+       ON CONFLICT(id) DO UPDATE SET customer_id=$2, section=$3, stored_name=$4, mime_type=$5, size=$6, data=$7, created_at=now()`,
+      [rec.id, rec.customer_id, rec.section, rec.stored_name, rec.mime_type, rec.size, rec.data]
+    );
+    return true;
+  } finally { c.release(); }
+}
+
+async function getFileBytes(id) {
+  if (!(USE_PG && pgAvailable && pgPool)) return null;
+  const c = await pgPool.connect();
+  try {
+    const r = await c.query('SELECT data, mime_type FROM wb_files WHERE id=$1', [id]);
+    if (r.rows.length === 0) return null;
+    return { data: r.rows[0].data, mimeType: r.rows[0].mime_type };
+  } finally { c.release(); }
+}
+
+async function deleteFile(id) {
+  if (!(USE_PG && pgAvailable && pgPool)) return;
+  const c = await pgPool.connect();
+  try {
+    await c.query('DELETE FROM wb_files WHERE id=$1', [id]);
   } finally { c.release(); }
 }
 
@@ -168,5 +214,6 @@ function uid(prefix) {
 module.exports = {
   init, load, save, getCollection, uid,
   BACKUP_DIR, DB_FILE,
-  isPg: () => USE_PG && pgAvailable
+  isPg: () => USE_PG && pgAvailable,
+  putFile, getFileBytes, deleteFile
 };
