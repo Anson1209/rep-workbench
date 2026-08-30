@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const db = require('../db');
 
-const UPLOAD_ROOT = path.join(__dirname, '..', '..', 'data', 'uploads');
+const UPLOAD_ROOT = path.join(process.env.DATA_DIR || process.env.RAILWAY_VOLUME_MOUNT_PATH || path.join(__dirname, '..', '..', 'data'), 'uploads');
 
 function findFile(fileId) {
   for (const c of db.getCollection('customers')) {

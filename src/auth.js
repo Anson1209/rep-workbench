@@ -3,13 +3,18 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
-const DATA_DIR = path.join(__dirname, '..', 'data');
+const DATA_DIR = process.env.DATA_DIR || process.env.RAILWAY_VOLUME_MOUNT_PATH || path.join(__dirname, '..', 'data');
 const AUTH_FILE = path.join(DATA_DIR, 'auth.json');
 const SECRET_FILE = path.join(DATA_DIR, '.authsecret');
 
 // Stable secret for signing tokens (persisted per deploy). If it changes,
 // existing tokens become invalid (user just re-logs in).
 function loadSecret() {
+  // 固定密钥通过环境变量注入：Render 免费档每次冷启动都会清空磁盘，
+  // 若密钥只存在磁盘上，冷启动后会变化、导致所有已登录会话失效。
+  // 设了 AUTH_SECRET 后，冷启动后旧 token 依旧有效，用户无需重新登录。
+  const envSecret = process.env.AUTH_SECRET;
+  if (envSecret && envSecret.length >= 16) return envSecret;
   try {
     if (fs.existsSync(SECRET_FILE)) {
       const s = fs.readFileSync(SECRET_FILE, 'utf8').trim();
@@ -48,11 +53,12 @@ function isConfigured() {
   return !!loadAuth();
 }
 
-// Optional: seed initial password from APP_PASSWORD env (set privately in
-// Render dashboard). Only used when not yet configured.
+// 冷启动自愈：auth.json 缺失（Render 免费档清盘）时，自动初始化访问密码。
+// 优先用 APP_PASSWORD 环境变量；未设置则回退到约定密码 891209，
+// 保证公开站永远可登录、不再卡在"未授权"。
 function ensureInitial() {
   if (isConfigured()) return;
-  const envPw = process.env.APP_PASSWORD;
+  const envPw = process.env.APP_PASSWORD || '891209';
   if (envPw && envPw.length >= 6) {
     try { setPassword(envPw); } catch (e) { /* ignore */ }
   }

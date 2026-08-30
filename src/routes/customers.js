@@ -7,9 +7,9 @@ const path = require('path');
 const db = require('../db');
 const crypto = require('../crypto');
 
-const UPLOAD_ROOT = path.join(__dirname, '..', '..', 'data', 'uploads');
+const UPLOAD_ROOT = path.join(process.env.DATA_DIR || process.env.RAILWAY_VOLUME_MOUNT_PATH || path.join(__dirname, '..', '..', 'data'), 'uploads');
 
-const ALLOWED_EXT = ['png', 'jpg', 'jpeg', 'doc', 'docx', 'xls', 'xlsx', 'pdf'];
+const ALLOWED_EXT = ['png', 'jpg', 'jpeg', 'doc', 'docx', 'xls', 'xlsx', 'pdf', 'ppt', 'pptx'];
 const MAX_SIZE = 25 * 1024 * 1024; // 25MB
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -95,21 +95,24 @@ router.get('/', (req, res) => {
   res.json(list.map(pubCustomer));
 });
 
-// Create
+// Create — name required; PII fields (phone/idCard/bankCard) are optional
+// so a customer record can be filed from a scanned ID card first and
+// the rest of the data filled in later. Format is still validated when
+// a value is provided.
 router.post('/', (req, res) => {
   const { hospital, name, idCard, bankCard, phone } = req.body || {};
   if (!name || !name.trim()) return res.status(400).json({ error: '姓名必填' });
-  if (!validatePhone(phone)) return res.status(400).json({ error: '手机号格式不正确（应为 11 位，1 开头）' });
-  if (!validateIdCard(idCard)) return res.status(400).json({ error: '身份证号格式不正确' });
-  if (!validateBank(bankCard)) return res.status(400).json({ error: '银行卡号格式不正确（12-19 位数字）' });
+  if (phone && !validatePhone(phone)) return res.status(400).json({ error: '手机号格式不正确（应为 11 位，1 开头）' });
+  if (idCard && !validateIdCard(idCard)) return res.status(400).json({ error: '身份证号格式不正确' });
+  if (bankCard && !validateBank(bankCard)) return res.status(400).json({ error: '银行卡号格式不正确（12-19 位数字）' });
   const now = new Date().toISOString();
   const c = {
     id: db.uid('c_'),
     hospital: (hospital || '').trim(),
     name: name.trim(),
-    idCardEnc: crypto.encrypt(idCard.trim()),
-    bankCardEnc: crypto.encrypt(bankCard.replace(/\s/g, '').trim()),
-    phone: phone.trim(),
+    idCardEnc: crypto.encrypt((idCard || '').trim()),
+    bankCardEnc: crypto.encrypt((bankCard || '').replace(/\s/g, '').trim()),
+    phone: (phone || '').trim(),
     attachments: { profile: [], identity: [] },
     createdAt: now,
     updatedAt: now
@@ -170,7 +173,10 @@ router.post('/:id/attachments', upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: '未收到文件' });
   const ext = extOf(req.file.originalname);
   if (!ALLOWED_EXT.includes(ext)) return res.status(400).json({ error: '不支持的文件类型' });
-  const safeName = req.file.originalname.replace(/[^\w.\u4e00-\u9fa5-]/g, '_');
+  // multer/busboy 默认按 latin1 解码上传文件名，中文会乱码；此处还原为 UTF-8
+  let rawName = req.file.originalname;
+  try { rawName = Buffer.from(rawName, 'latin1').toString('utf8'); } catch (e) {}
+  const safeName = rawName.replace(/[^\w.\u4e00-\u9fa5-]/g, '_');
   const storedName = db.uid('f_') + '.' + ext;
   const dir = path.join(UPLOAD_ROOT, c.id, section);
   fs.mkdirSync(dir, { recursive: true });

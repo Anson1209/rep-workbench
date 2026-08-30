@@ -2,6 +2,27 @@
 (function () {
   'use strict';
   const BASE = '';
+  // Guard so a 401 storm (e.g. while overlay is open) doesn't queue the
+  // overlay multiple times. Reset by Auth.setToken() after a fresh login.
+  function _authGuard() { return !!window.__authOverlayShown; }
+  function _setAuthGuard(v) { window.__authOverlayShown = !!v; }
+  function _maybeReauth() {
+    if (_authGuard()) return;
+    if (!window.Auth || !window.Auth.showAuthUI) return;
+    _setAuthGuard(true);
+    try {
+      window.Auth.clearToken && window.Auth.clearToken();
+      window.Auth.showAuthUI(() => {
+        _setAuthGuard(false);
+        // Reload the current page so all module state is re-fetched with
+        // the fresh token instead of leaving stale "data load failed"
+        // banners behind.
+        try { window.location.reload(); } catch (e) {}
+      });
+    } catch (e) {
+      _setAuthGuard(false);
+    }
+  }
 
   async function req(method, url, body, isForm) {
     const opt = { method, headers: {} };
@@ -23,6 +44,13 @@
       const err = new Error(msg);
       err.status = res.status;
       if (data && data.code) err.code = data.code;
+      // Mid-session 401 (e.g. Render was redeployed and the JWT is now
+      // invalid) — surface the auth overlay instead of leaving the user
+      // stuck on a "data load failed" banner. Endpoints under /api/auth/*
+      // are the only legitimate sources of 401 from the login flow itself.
+      if (res.status === 401 && window.Auth && url.indexOf('/api/auth/') !== 0) {
+        _maybeReauth();
+      }
       throw err;
     }
     return data;
