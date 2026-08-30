@@ -212,6 +212,17 @@ input, select, textarea { font-family: inherit; font-size: 15px; }
 
 /* ---------- Customer grid ---------- */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+/* 客户按医院分组容器 */
+.g-block { margin-bottom: 22px; }
+.g-block .g-head {
+  display: flex; align-items: baseline; gap: 12px;
+  margin: 4px 0 12px;
+  padding: 0 0 8px;
+  border-bottom: 2px solid var(--primary-soft);
+}
+.g-block .g-head .h-name { font-size: 16px; font-weight: 700; color: var(--primary-dark); }
+.g-block .g-head .h-count { font-size: 12px; color: var(--text-faint); font-weight: 500; padding: 2px 10px; background: var(--primary-soft); color: var(--primary); border-radius: 999px; }
+.g-block.empty-group .g-head .h-name { color: var(--text-faint); font-style: italic; }
 .cust-card { display: flex; flex-direction: column; }
 .cust-card .c-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
 .avatar {
