@@ -109,6 +109,11 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`医药代表工作台已启动: http://localhost:${PORT}`);
-});
+// 启动前先完成数据层初始化（JSON 或 Postgres），确保缓存已载入再接受请求。
+db.init()
+  .catch(e => console.error('[db] init 失败:', e.message))
+  .finally(() => {
+    app.listen(PORT, () => {
+      console.log(`医药代表工作台已启动: http://localhost:${PORT}`);
+    });
+  });

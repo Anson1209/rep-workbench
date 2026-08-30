@@ -7,6 +7,15 @@ const KEY_FILE = path.join(process.env.DATA_DIR || process.env.RAILWAY_VOLUME_MO
 const ALGO = 'aes-256-gcm';
 
 function loadKey() {
+  // 1) 显式 CRYPTO_KEY（64 hex = 32 字节），最稳，独立于登录密码。
+  const ck = process.env.CRYPTO_KEY;
+  if (ck && /^[0-9a-fA-F]{64}$/.test(ck)) return Buffer.from(ck, 'hex');
+  // 2) 由 AUTH_SECRET 派生（≥32 位）。设了它，冷启动密钥不变，
+  //    存在 Postgres 里的加密身份证/银行卡字段依旧可解密。
+  const sec = process.env.AUTH_SECRET;
+  if (sec && sec.length >= 32) return crypto.createHash('sha256').update(sec, 'utf8').digest();
+  // 3) 兜底：临时磁盘文件（本地开发 / 非 Render 环境）。
+  //    Render 免费档清盘后会重新随机生成，导致旧密文无法解密——故优先用上面环境变量。
   try {
     if (fs.existsSync(KEY_FILE)) {
       const k = fs.readFileSync(KEY_FILE, 'utf8').trim();
