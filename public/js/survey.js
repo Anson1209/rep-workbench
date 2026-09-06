@@ -16,7 +16,7 @@
     violation: { label: '⚠ 违规',   cls: 'pill-violation' }
   };
 
-  const state = { filters: { start: '', end: '', projectType: '', reminder: '', q: '' }, list: [] };
+  const state = { filters: { date: '', projectType: '', reminder: '', q: '' }, list: [] };
 
   function projectChip(t) {
     if (!t) return '<span class="type-chip type-empty">未分类</span>';
@@ -29,8 +29,7 @@
         '<span class="sub">按项目分额度（大区 ¥500 / BU ¥800），每位专家 ≤3 次，相邻两次 ≥30 天</span>' +
         '<span class="spacer"></span><button class="btn btn-primary" id="addSurveyBtn">+ 新增记录</button></div>' +
       '<div class="filters">' +
-        '<div class="field"><label>开始日期</label><input class="input" type="date" id="f_start" value="' + esc(state.filters.start) + '"></div>' +
-        '<div class="field"><label>结束日期</label><input class="input" type="date" id="f_end" value="' + esc(state.filters.end) + '"></div>' +
+        '<div class="field"><label>调研时间</label><input class="input" type="date" id="f_date" value="' + esc(state.filters.date) + '"></div>' +
         '<div class="field"><label>项目类型</label><select class="select" id="f_projectType">' +
           '<option value="">全部</option>' +
           PROJECT_TYPES.map(p => '<option value="' + esc(p.key) + '"' + (state.filters.projectType === p.key ? ' selected' : '') + '>' + esc(p.key) + '（¥' + p.amount + '）</option>').join('') +
@@ -155,15 +154,14 @@
   function wireFilters(view) {
     document.getElementById('addSurveyBtn').onclick = () => openForm(null);
     document.getElementById('applyFilter').onclick = () => {
-      state.filters.start = document.getElementById('f_start').value;
-      state.filters.end = document.getElementById('f_end').value;
+      state.filters.date = document.getElementById('f_date').value;
       state.filters.projectType = document.getElementById('f_projectType').value;
       state.filters.reminder = document.getElementById('f_reminder').value;
       state.filters.q = document.getElementById('f_q').value.trim();
       load();
     };
     document.getElementById('clearFilter').onclick = () => {
-      state.filters = { start: '', end: '', projectType: '', reminder: '', q: '' };
+      state.filters = { date: '', projectType: '', reminder: '', q: '' };
       view.innerHTML = shellHTML();
       wireFilters(view);
       load();
