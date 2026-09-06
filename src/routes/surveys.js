@@ -69,10 +69,11 @@ function usageCountOf(col, expertName, projectType, excludeId) {
 
 // List / filter —— 同时支持老字段（target/count/status/note）以防旧数据混用
 router.get('/', (req, res) => {
-  const { start, end, status, projectType, reminder, q } = req.query;
+  const { start, end, date, status, projectType, reminder, q } = req.query;
   let list = db.getCollection('surveys').slice();
   if (start) list = list.filter(s => (s.usageDate || s.date) >= start);
   if (end) list = list.filter(s => (s.usageDate || s.date) <= end);
+  if (date) list = list.filter(s => (s.usageDate || s.date) === date);
   if (status) list = list.filter(s => (s.status || 'done') === status);
   if (projectType) list = list.filter(s => (s.projectType || '') === projectType);
   if (reminder) list = list.filter(s => (s.reminderStatus || 'normal') === reminder);
