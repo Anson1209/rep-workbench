@@ -124,10 +124,10 @@
         '<tr class="group-row" data-gkey="' + esc(g.key) + '">' +
           '<td class="grp-name">' + esc(g.expertName) + '</td>' +
           '<td class="col-type">' + projectChip(g.projectType) + '</td>' +
-          '<td class="col-date multi-val" title="' + esc(g.datesJoined) + '">' + g.datesHTML + '</td>' +
+          '<td class="col-date" title="' + esc(g.datesJoined) + '"><div class="multi-val">' + g.datesHTML + '</div></td>' +
           '<td class="col-count">' + g.totalCount + '</td>' +
           '<td>¥' + g.totalAmount + '</td>' +
-          '<td class="multi-val" title="' + esc(g.notesJoined) + '">' + g.notesHTML + '</td>' +
+          '<td title="' + esc(g.notesJoined) + '"><div class="multi-val">' + g.notesHTML + '</div></td>' +
           '<td><span class="pill ' + rem.cls + '">' + esc(rem.label) + '</span></td>' +
           '<td><div class="row-actions">' +
             '<button class="btn btn-sm" data-sact="toggle" data-key="' + esc(g.key) + '">' + (expanded ? '收起' : '明细') + '</button>' +
