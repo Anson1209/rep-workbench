@@ -16,7 +16,7 @@
     violation: { label: '⚠ 违规',   cls: 'pill-violation' }
   };
 
-  const state = { filters: { date: '', projectType: '', reminder: '', q: '' }, list: [] };
+  const state = { filters: { date: '', projectType: '', reminder: '', q: '' }, list: [], expanded: new Set() };
 
   function projectChip(t) {
     if (!t) return '<span class="type-chip type-empty">未分类</span>';
@@ -44,13 +44,13 @@
       '</div>' +
       '<div class="table-wrap"><table class="tbl" id="surveyTbl">' +
         '<thead><tr>' +
-          '<th class="col-date">调研日期</th>' +
-          '<th class="col-type">项目类型</th>' +
           '<th>专家姓名</th>' +
+          '<th class="col-type">项目类型</th>' +
+          '<th class="col-date">调研日期</th>' +
           '<th class="col-count">使用次数</th>' +
           '<th>额度</th>' +
-          '<th>提醒</th>' +
           '<th>备注</th>' +
+          '<th>提醒</th>' +
           '<th>操作</th>' +
         '</tr></thead>' +
         '<tbody id="surveyBody"></tbody>' +
@@ -58,27 +58,97 @@
     '</div>';
   }
 
+  // 把扁平记录按 (专家姓名, 项目类型) 聚合：同一客户只显示一行，
+  // 调研日期/备注分别列在一行里，使用次数=合计，额度=项目金额×次数。
+  function groupRecords(list) {
+    const map = new Map();
+    for (const s of list) {
+      const key = (s.expertName || s.target || '') + '||' + (s.projectType || '');
+      if (!map.has(key)) map.set(key, []);
+      map.get(key).push(s);
+    }
+    const groups = [];
+    for (const [key, recs] of map.entries()) {
+      recs.sort((a, b) => (a.usageDate || a.date || '').localeCompare(b.usageDate || b.date || ''));
+      const first = recs[0];
+      const amount = first.amount || PROJECT_TYPES[first.projectType] || 0;
+      const dates = recs.map(r => r.usageDate || r.date || '');
+      const notes = recs.map(r => (r.note || '').trim()).filter(Boolean);
+      const hasViolation = recs.some(r => r.reminderStatus === 'violation');
+      const lastDate = recs[recs.length - 1].usageDate || recs[recs.length - 1].date || '';
+      groups.push({
+        key,
+        expertName: first.expertName || first.target || '',
+        projectType: first.projectType || '',
+        amount,
+        records: recs,
+        totalCount: recs.length,
+        totalAmount: amount * recs.length,
+        datesJoined: dates.join('、'),
+        notesJoined: notes.length ? notes.join('、') : '—',
+        reminderStatus: hasViolation ? 'violation' : 'normal',
+        lastDate
+      });
+    }
+    groups.sort((a, b) => (a.lastDate < b.lastDate ? 1 : (a.lastDate > b.lastDate ? -1 : 0)));
+    return groups;
+  }
+
+  function recordsOfKey(key) {
+    const i = key.indexOf('||');
+    const name = key.slice(0, i);
+    const type = key.slice(i + 2);
+    return state.list.filter(s => (s.expertName || s.target || '') === name && (s.projectType || '') === type);
+  }
+
   function bodyHTML() {
-    if (!state.list.length) {
+    let groups = groupRecords(state.list);
+    if (state.filters.reminder) {
+      groups = groups.filter(g => g.reminderStatus === state.filters.reminder);
+    }
+    if (!groups.length) {
       return '<tr><td colspan="8"><div class="empty-state" style="padding:30px">📋 暂无调研记录，点击右上角「新增记录」</div></td></tr>';
     }
-    return state.list.map(s => {
-      const rem = REMINDER[s.reminderStatus] || REMINDER.normal;
-      const usageCount = s.count != null ? s.count : '—';
-      const usageTotal = s.amount ? '¥' + s.amount : '—';
-      const reason = s.reminderReason ? '<div class="reminder-reason">' + esc(s.reminderReason) + '</div>' : '';
-      return '<tr>' +
-        '<td class="col-date">' + esc(s.usageDate || s.date || '') + '</td>' +
-        '<td class="col-type">' + projectChip(s.projectType) + '</td>' +
-        '<td>' + esc(s.expertName || s.target || '') + '</td>' +
-        '<td class="col-count">' + esc(usageCount) + '</td>' +
-        '<td>' + esc(usageTotal) + '</td>' +
-        '<td><span class="pill ' + rem.cls + '">' + esc(rem.label) + '</span>' + reason + '</td>' +
-        '<td>' + esc(s.note || '—') + '</td>' +
-        '<td><div class="row-actions">' +
-          '<button class="btn btn-sm" data-sact="edit" data-id="' + esc(s.id) + '">编辑</button>' +
-          '<button class="btn btn-sm btn-danger" data-sact="del" data-id="' + esc(s.id) + '">删除</button>' +
-        '</div></td></tr>';
+    return groups.map(g => {
+      const rem = REMINDER[g.reminderStatus] || REMINDER.normal;
+      const expanded = state.expanded.has(g.key);
+      const rows = [
+        '<tr class="group-row" data-gkey="' + esc(g.key) + '">' +
+          '<td class="grp-name">' + esc(g.expertName) + '</td>' +
+          '<td class="col-type">' + projectChip(g.projectType) + '</td>' +
+          '<td class="col-date multi-val" title="' + esc(g.datesJoined) + '">' + esc(g.datesJoined) + '</td>' +
+          '<td class="col-count">' + g.totalCount + '</td>' +
+          '<td>¥' + g.totalAmount + '</td>' +
+          '<td class="multi-val" title="' + esc(g.notesJoined) + '">' + esc(g.notesJoined) + '</td>' +
+          '<td><span class="pill ' + rem.cls + '">' + esc(rem.label) + '</span></td>' +
+          '<td><div class="row-actions">' +
+            '<button class="btn btn-sm" data-sact="toggle" data-key="' + esc(g.key) + '">' + (expanded ? '收起' : '明细') + '</button>' +
+            '<button class="btn btn-sm btn-danger" data-sact="delall" data-key="' + esc(g.key) + '">删除全部</button>' +
+          '</div></td>' +
+        '</tr>'
+      ];
+      if (expanded) {
+        for (const r of g.records) {
+          const rrem = REMINDER[r.reminderStatus] || REMINDER.normal;
+          const reason = r.reminderReason ? ' <span class="reminder-reason">' + esc(r.reminderReason) + '</span>' : '';
+          rows.push(
+            '<tr class="sub-row">' +
+              '<td class="sub-indent">↳</td>' +
+              '<td></td>' +
+              '<td class="col-date">' + esc(r.usageDate || r.date || '') + reason + '</td>' +
+              '<td class="col-count">' + (r.count != null ? r.count : '—') + '</td>' +
+              '<td>¥' + (r.amount || '') + '</td>' +
+              '<td>' + esc(r.note || '—') + '</td>' +
+              '<td><span class="pill ' + rrem.cls + '">' + esc(rrem.label) + '</span></td>' +
+              '<td><div class="row-actions">' +
+                '<button class="btn btn-sm" data-sact="edit" data-id="' + esc(r.id) + '">编辑</button>' +
+                '<button class="btn btn-sm btn-danger" data-sact="del" data-id="' + esc(r.id) + '">删除</button>' +
+              '</div></td>' +
+            '</tr>'
+          );
+        }
+      }
+      return rows.join('');
     }).join('');
   }
 
@@ -139,16 +209,24 @@
     });
   }
 
+  function renderBody() {
+    const body = document.getElementById('surveyBody');
+    if (body) body.innerHTML = bodyHTML();
+  }
+
   async function load() {
     const body = document.getElementById('surveyBody');
     if (!body) return;
     try {
-      state.list = await window.API.listSurveys(state.filters);
+      // reminder 在分组后再按组过滤（组内有任一违规即显示违规），故不传给后端
+      const apiFilters = Object.assign({}, state.filters);
+      delete apiFilters.reminder;
+      state.list = await window.API.listSurveys(apiFilters);
     } catch (e) {
       body.innerHTML = '<tr><td colspan="8"><div class="empty-state" style="padding:20px">⚠️ ' + esc(e.message) + '</div></td></tr>';
       return;
     }
-    body.innerHTML = bodyHTML();
+    renderBody();
   }
 
   function wireFilters(view) {
@@ -169,8 +247,27 @@
     document.getElementById('surveyBody').addEventListener('click', async (ev) => {
       const b = ev.target.closest('[data-sact]');
       if (!b) return;
-      const id = b.dataset.id; const act = b.dataset.sact;
-      const s = state.list.find(x => x.id === id);
+      const act = b.dataset.sact;
+      if (act === 'toggle') {
+        const k = b.dataset.key;
+        if (state.expanded.has(k)) state.expanded.delete(k); else state.expanded.add(k);
+        renderBody();
+        return;
+      }
+      if (act === 'delall') {
+        const k = b.dataset.key;
+        const recs = recordsOfKey(k);
+        const name = recs[0] ? (recs[0].expertName || recs[0].target || '') : '';
+        if (await confirm('确定删除【' + name + '】的全部 ' + recs.length + ' 条调研记录？', true)) {
+          try {
+            for (const r of recs) await window.API.deleteSurvey(r.id);
+            state.expanded.delete(k);
+            toast('已删除全部记录', 'ok'); load();
+          } catch (e) { toast(e.message, 'err'); }
+        }
+        return;
+      }
+      const id = b.dataset.id; const s = state.list.find(x => x.id === id);
       if (act === 'edit') openForm(s);
       else if (act === 'del') {
         if (await confirm('确定删除该调研记录？', true)) {
