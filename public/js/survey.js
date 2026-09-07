@@ -108,7 +108,7 @@
       '<div class="field"><label>备注</label><textarea class="textarea" id="s_note" placeholder="调研要点、反馈…">' + esc(s.note || '') + '</textarea></div>' +
       '<div class="field-err" id="s_err"></div>' +
       '<div class="tiny muted" style="margin-top:8px">' +
-        '📌 业务规则：每专家同项目 ≤3 次；相邻两次使用 ≥30 天，否则系统标记「⚠ 违规」' +
+        '📌 业务规则：每专家同项目 ≤3 次；相邻两次使用 ≥30 天，否则系统标记「⚠ 违规」。2026年6月之前的记录豁免间隔限制。' +
       '</div>';
   }
 
