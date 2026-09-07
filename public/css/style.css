@@ -304,6 +304,9 @@ table.tbl tr:hover td { background: var(--surface-2); }
 
 /* 问卷台账：同一客户聚合为一行，统一行高 + 一致间隔线 */
 .tbl .group-row { background: var(--surface); }
+/* 禁用分组行的 hover 变色 —— 避免某列变浅灰造成"间隔线断"的视觉错觉 */
+.tbl tr.group-row:hover td,
+.tbl tr.group-row:hover > td { background: var(--surface); }
 .tbl .group-row > td {
   vertical-align: middle;
   height: 88px;
