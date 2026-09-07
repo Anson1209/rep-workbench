@@ -308,17 +308,35 @@ table.tbl tr:hover td { background: var(--surface-2); }
 .tbl tr.group-row:hover td,
 .tbl tr.group-row:hover > td { background: var(--surface); }
 .tbl .group-row > td {
+  position: relative;
   vertical-align: middle;
   height: 88px;
+  max-height: 88px;
   padding: 10px 12px;
-  border-bottom: 1px solid var(--border);
+  /* 不用 border-bottom（受 padding/box-sizing/内容高度影响会错位），
+     改用绝对定位伪元素严格贴 td 底部画线 */
+  border-bottom: none;
   font-weight: 600;
 }
+/* 每个 td 底部一条 1px 线，left/right 拉满、bottom:0 严格贴底 → 整行连成一条平行线 */
+.tbl .group-row > td::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--border);
+  pointer-events: none;
+}
 .tbl .group-row .grp-name { font-weight: 700; color: var(--text); }
+/* 多值单元格：固定 3 行高度（60px），整体走 td 的 vertical-align:middle 垂直居中 */
 .tbl .multi-val {
   display: inline-block;
   line-height: 20px;
   text-align: left;
+  max-height: 60px;
+  overflow: hidden;
 }
 .tbl .multi-val > .multi-item {
   display: block;
