@@ -309,9 +309,13 @@ table.tbl tr:hover td { background: var(--surface-2); }
      不会因 .multi-val 的 max-height/overflow 引入子像素差异导致线糊掉/消失 */
   box-shadow: inset 0 -1px 0 0 var(--border);
 }
-/* 禁用分组行的 hover 变色 —— 避免某列变浅灰造成"间隔线断"的视觉错觉 */
+/* hover 时 td 背景必须为 transparent —— 若设成不透明的 --surface，
+   会盖住 tr 自身的 box-shadow（那条底部间隔线），导致"鼠标一碰线就消失"。
+   tr 保持 --surface 白底，td 透明 → 底纹与 tr 底部 1px 线都始终可见。 */
 .tbl tr.group-row:hover td,
-.tbl tr.group-row:hover > td { background: var(--surface); }
+.tbl tr.group-row:hover > td { background: transparent; }
+/* 兜底：任何时候 td 都不要有不透明背景覆盖 tr 的间隔线 */
+.tbl tr.group-row > td { background: transparent; }
 .tbl .group-row > td {
   vertical-align: middle;
   height: 88px;
