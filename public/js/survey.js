@@ -73,7 +73,13 @@
       const first = recs[0];
       const amount = first.amount || PROJECT_TYPES[first.projectType] || 0;
       const dates = recs.map(r => r.usageDate || r.date || '');
-      const notes = recs.map(r => (r.note || '').trim()).filter(Boolean);
+      const notes = recs.map(r => (r.note || '').trim());
+      const datesJoined = dates.filter(Boolean).join('、');
+      const notesJoined = notes.filter(Boolean).join('、');
+      const datesHTML = dates.map(d => '<span class="multi-item">' + esc(d) + '</span>').join('');
+      const notesHTML = notes.length
+        ? notes.map(n => '<span class="multi-item">' + esc(n) + '</span>').join('')
+        : '<span class="multi-item muted">—</span>';
       const hasViolation = recs.some(r => r.reminderStatus === 'violation');
       const lastDate = recs[recs.length - 1].usageDate || recs[recs.length - 1].date || '';
       groups.push({
@@ -84,8 +90,10 @@
         records: recs,
         totalCount: recs.length,
         totalAmount: amount * recs.length,
-        datesJoined: dates.join('、'),
-        notesJoined: notes.length ? notes.join('、') : '—',
+        datesJoined,
+        notesJoined,
+        datesHTML,
+        notesHTML,
         reminderStatus: hasViolation ? 'violation' : 'normal',
         lastDate
       });
@@ -116,10 +124,10 @@
         '<tr class="group-row" data-gkey="' + esc(g.key) + '">' +
           '<td class="grp-name">' + esc(g.expertName) + '</td>' +
           '<td class="col-type">' + projectChip(g.projectType) + '</td>' +
-          '<td class="col-date multi-val" title="' + esc(g.datesJoined) + '">' + esc(g.datesJoined) + '</td>' +
+          '<td class="col-date multi-val" title="' + esc(g.datesJoined) + '">' + g.datesHTML + '</td>' +
           '<td class="col-count">' + g.totalCount + '</td>' +
           '<td>¥' + g.totalAmount + '</td>' +
-          '<td class="multi-val" title="' + esc(g.notesJoined) + '">' + esc(g.notesJoined) + '</td>' +
+          '<td class="multi-val" title="' + esc(g.notesJoined) + '">' + g.notesHTML + '</td>' +
           '<td><span class="pill ' + rem.cls + '">' + esc(rem.label) + '</span></td>' +
           '<td><div class="row-actions">' +
             '<button class="btn btn-sm" data-sact="toggle" data-key="' + esc(g.key) + '">' + (expanded ? '收起' : '明细') + '</button>' +
