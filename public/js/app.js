@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   // Build fingerprint — 在浏览器 F12 控制台里看，用来判断线上是不是最新代码
-  console.log('%c[rep-workbench] build 6d2f4a1 · 2026-09-07 07:57 · 问卷台账筛选器「开始/结束日期」合并为单一「调研时间」精确筛选', 'background:#0a7;color:#fff;padding:2px 6px;border-radius:4px');
+  console.log('%c[rep-workbench] build 9c1e7b3 · 2026-09-07 13:07 · 问卷台账：2026年6月前的调研豁免30天间隔约束(6月起照常校验)', 'background:#0a7;color:#fff;padding:2px 6px;border-radius:4px');
 
   const { esc, toast } = window.UI;
 
