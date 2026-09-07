@@ -299,7 +299,9 @@ table.tbl tr:hover td { background: var(--surface-2); }
 .reminder-reason { font-size: 11px; color: var(--danger); margin-top: 2px; }
 /* 表格列布局：项目类型列固定宽度 */
 .tbl .col-type { white-space: nowrap; }
-.tbl .col-date { white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* 时间相关列（调研日期）内容居中 —— 表头与单元格一起居中才整齐 */
+.tbl th.col-date,
+.tbl td.col-date { white-space: nowrap; font-variant-numeric: tabular-nums; text-align: center; }
 .tbl .col-count { text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; }
 
 /* 问卷台账：同一客户聚合为一行，统一行高 + 一致间隔线 */
@@ -329,7 +331,7 @@ table.tbl tr:hover td { background: var(--surface-2); }
 .tbl .multi-val {
   display: inline-block;
   line-height: 20px;
-  text-align: left;
+  text-align: center;   /* 调研日期 / 备注里的日期时间统一居中 */
 }
 .tbl .multi-val > .multi-item {
   display: block;
