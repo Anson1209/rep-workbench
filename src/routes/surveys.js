@@ -8,6 +8,8 @@ const db = require('../db');
 const PROJECT_TYPES = { '大区': 500, 'BU': 800 };
 const MAX_USAGE_PER_EXPERT = 3;
 const MIN_INTERVAL_DAYS = 30;
+// 2026-06-01 之前的调研不受 30 天间隔约束；仅 6 月及之后录入的才校验间隔。
+const EXEMPT_BEFORE = '2026-06-01';
 const VALID_REMINDER = ['normal', 'warning', 'violation'];
 
 // 按 (projectType, expertName) 维度从全表过滤；忽略大小写差异。
@@ -30,6 +32,10 @@ function daysBetween(prevISO, nextISO) {
 // 计算提醒状态：与该专家本次之前最近一条记录比较，间隔不足 30 天则违规。
 // isUpdate 时排除自身；returnReason=true 时返回字符串原因，否则返回 null。
 function computeReminder(col, expertName, projectType, usageDate, excludeId) {
+  // 2026-06-01 之前录入的调研不受 30 天间隔约束，直接视为正常。
+  if (usageDate && usageDate < EXEMPT_BEFORE) {
+    return { status: 'normal', reason: '', prevUsageDate: null, daysSincePrev: null, exempt: true };
+  }
   let prev = null;
   for (const r of col) {
     if (excludeId && r.id === excludeId) continue;
