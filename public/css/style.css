@@ -303,30 +303,29 @@ table.tbl tr:hover td { background: var(--surface-2); }
 .tbl .col-count { text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; }
 
 /* 问卷台账：同一客户聚合为一行，统一行高 + 一致间隔线 */
-.tbl .group-row { background: var(--surface); }
+.tbl .group-row {
+  background: var(--surface);
+  /* 画线从 td 改到 tr：tr 是 display:table-row，box-shadow 100% 渲染，
+     不会因 .multi-val 的 max-height/overflow 引入子像素差异导致线糊掉/消失 */
+  box-shadow: inset 0 -1px 0 0 var(--border);
+}
 /* 禁用分组行的 hover 变色 —— 避免某列变浅灰造成"间隔线断"的视觉错觉 */
 .tbl tr.group-row:hover td,
 .tbl tr.group-row:hover > td { background: var(--surface); }
 .tbl .group-row > td {
-  position: relative;
   vertical-align: middle;
   height: 88px;
-  max-height: 88px;
   padding: 10px 12px;
   border-bottom: none;
   font-weight: 600;
-  /* 用 box-shadow inset 画底部 1px 分隔线（比 ::after 伪元素 + 绝对定位更稳：
-     table-cell 内含 button/复杂子元素时 ::after 容易不渲染，造成"中间断层"） */
-  box-shadow: inset 0 -1px 0 0 var(--border);
 }
 .tbl .group-row .grp-name { font-weight: 700; color: var(--text); }
-/* 多值单元格：固定 3 行高度（60px），整体走 td 的 vertical-align:middle 垂直居中 */
+/* 多值单元格：去掉 max-height/overflow（它们会让含 multi-val 的 td 比其他 td 矮 0.5px，
+   进而让 td 底部 box-shadow 位置差 0.5px、抗锯齿后整行线糊掉） */
 .tbl .multi-val {
   display: inline-block;
   line-height: 20px;
   text-align: left;
-  max-height: 60px;
-  overflow: hidden;
 }
 .tbl .multi-val > .multi-item {
   display: block;
