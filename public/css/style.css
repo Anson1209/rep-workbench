@@ -302,6 +302,15 @@ table.tbl tr:hover td { background: var(--surface-2); }
 .tbl .col-date { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .tbl .col-count { text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; }
 
+/* 问卷台账：同一客户聚合为一行 */
+.tbl .group-row { background: var(--surface); }
+.tbl .group-row > td { vertical-align: top; border-bottom: 2px solid var(--border); font-weight: 600; }
+.tbl .group-row .grp-name { font-weight: 700; color: var(--text); }
+.tbl .multi-val { white-space: nowrap; }
+.tbl .sub-row > td { background: var(--surface-2); font-weight: 400; font-size: 13px; color: var(--text-soft); padding-top: 6px; padding-bottom: 6px; }
+.tbl .sub-row .sub-indent { color: var(--text-faint); }
+.tbl .sub-row .reminder-reason { margin-top: 0; display: inline; }
+
 .filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; align-items: flex-end; }
 .filters .field { margin-bottom: 0; }
 
