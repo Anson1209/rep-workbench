@@ -313,13 +313,9 @@ table.tbl tr:hover td { background: var(--surface-2); }
 }
 .tbl .group-row .grp-name { font-weight: 700; color: var(--text); }
 .tbl .multi-val {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 0;
-  height: 100%;
-  overflow: hidden;
-  line-height: 1.3;
+  display: inline-block;
+  line-height: 20px;
+  text-align: left;
 }
 .tbl .multi-val > .multi-item {
   display: block;
