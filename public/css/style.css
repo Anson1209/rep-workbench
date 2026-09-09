@@ -647,9 +647,10 @@ a.link { color: var(--primary); text-decoration: none; }
   display: flex; flex-direction: column; gap: 5px;
 }
 .cell-item {
+  position: relative;
   background: var(--primary-soft);
   border-radius: 6px;
-  padding: 6px 10px;
+  padding: 6px 10px 20px;
   cursor: pointer;
   border-left: 3px solid var(--primary);
   transition: transform 120ms, box-shadow 120ms;
@@ -661,17 +662,22 @@ a.link { color: var(--primary); text-decoration: none; }
   line-height: 1.25;
 }
 .cell-item .item-dept {
+  position: absolute;
+  right: 10px;
+  bottom: 6px;
   font-size: 10px;
   color: var(--text-soft);
-  margin-top: 0;
-  line-height: 1.25;
+  line-height: 1.2;
   font-weight: 400;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 55%;
+  text-align: right;
 }
 .cell-item .item-hosp {
   margin-top: 4px;
+  padding-right: 60px;  /* 给右下角科室留空间 */
 }
 .cell-item .item-hosp .hosp-tag {
   display: inline-block;
