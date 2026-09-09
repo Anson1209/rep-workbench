@@ -69,6 +69,7 @@ app.use('/api', (req, res, next) => {
 app.use('/api/customers', require('./src/routes/customers'));
 app.use('/api/events', require('./src/routes/events'));
 app.use('/api/surveys', require('./src/routes/surveys'));
+app.use('/api/clinic_schedule', require('./src/routes/clinic_schedule'));
 app.use('/api/files', require('./src/routes/files'));
 
 // Backup export (raw db, encrypted fields preserved)
