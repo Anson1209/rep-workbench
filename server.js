@@ -101,8 +101,7 @@ app.get('/api/stats', (req, res) => {
     customers: d.customers.length,
     events: d.events.length,
     surveys: d.surveys.length,
-    clinic_schedule: d.clinic_schedule.length,
-    hospitals: d.hospitals.length
+    clinic_schedule: d.clinic_schedule.length
   });
 });
 
