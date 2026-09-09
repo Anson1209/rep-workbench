@@ -6,7 +6,14 @@ const db = require('../db');
 // 客户出门诊时间（长期固定）
 // 顶层结构：
 //   clinic_schedule: [
-//     { id, weekday(1..7), period('AM'|'PM'), customerName, timeRange?, note?, order, createdAt, updatedAt }
+//     {
+//       id, weekday(1..7), period('AM'|'PM'),
+//       customerName,                  // 必填
+//       department?,                   // 选填：科室项目
+//       hospitalName?,                 // 选填：医院名称（替代旧版 timeRange）
+//       timeRange?, note?,             // 旧字段，保留兼容但前端不再使用
+//       order, createdAt, updatedAt
+//     }
 //   ]
 // 没有 hospitals 集合，没有 weekStart 概念 —— 长期固定，按 weekday × period 展示。
 // 单元格 = (weekday, period)；一个单元格可容纳多条记录（多家医院客户）。
@@ -62,7 +69,9 @@ router.post('/', (req, res) => {
     weekday: Number(b.weekday),
     period: b.period,
     customerName: String(b.customerName).trim().slice(0, 30),
-    timeRange: (b.timeRange || '').trim().slice(0, 30),
+    department: (b.department || '').trim().slice(0, 30),
+    hospitalName: (b.hospitalName || '').trim().slice(0, 50),
+    timeRange: (b.timeRange || '').trim().slice(0, 30),  // 兼容旧数据
     note: (b.note || '').trim().slice(0, 200),
     order: Number.isFinite(Number(b.order)) ? Number(b.order) : 0,
     createdAt: now,
@@ -90,6 +99,8 @@ router.put('/:id', (req, res) => {
     if (!String(b.customerName).trim()) return res.status(400).json({ error: '客户姓名必填' });
     it.customerName = String(b.customerName).trim().slice(0, 30);
   }
+  if (b.department !== undefined) it.department = String(b.department).trim().slice(0, 30);
+  if (b.hospitalName !== undefined) it.hospitalName = String(b.hospitalName).trim().slice(0, 50);
   if (b.timeRange !== undefined) it.timeRange = String(b.timeRange).trim().slice(0, 30);
   if (b.note !== undefined) it.note = String(b.note).trim().slice(0, 200);
   if (b.order !== undefined) it.order = Number(b.order) || 0;
