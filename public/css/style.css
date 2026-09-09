@@ -677,13 +677,13 @@ a.link { color: var(--primary); text-decoration: none; }
   flex-shrink: 0;
 }
 .cell-item .item-hosp {
-  flex: 1;
+  flex: 1 1 0;
   min-width: 0;
-  display: flex;
-  justify-content: flex-start;
+  display: block;
+  overflow: hidden;
 }
 .cell-item .item-hosp .hosp-tag {
-  display: inline-block;
+  display: block;
   font-size: 10px;
   color: var(--primary);
   background: rgba(59, 130, 246, 0.10);
