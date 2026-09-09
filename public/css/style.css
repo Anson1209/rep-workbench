@@ -644,7 +644,7 @@ a.link { color: var(--primary); text-decoration: none; }
 .cs-cell-body:hover .cell-add { opacity: 0.5; }
 
 .cs-cell-body .cell-list {
-  display: flex; flex-direction: column; gap: 6px;
+  display: flex; flex-direction: column; gap: 5px;
 }
 .cell-item {
   background: var(--primary-soft);
@@ -653,19 +653,25 @@ a.link { color: var(--primary); text-decoration: none; }
   cursor: pointer;
   border-left: 3px solid var(--primary);
   transition: transform 120ms, box-shadow 120ms;
+  line-height: 1.35;
 }
 .cell-item:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
 .cell-item .item-name {
   font-size: 13px; font-weight: 700; color: var(--text);
-  line-height: 1.3;
+  line-height: 1.25;
 }
 .cell-item .item-dept {
-  font-size: 11px; color: var(--text-soft);
-  margin-top: 1px;
-  font-style: italic;
+  font-size: 10px;
+  color: var(--text-soft);
+  margin-top: 0;
+  line-height: 1.25;
+  font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .cell-item .item-hosp {
-  margin-top: 3px;
+  margin-top: 4px;
 }
 .cell-item .item-hosp .hosp-tag {
   display: inline-block;
