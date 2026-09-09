@@ -112,6 +112,14 @@
     updateSurvey: (id, d) => req('PUT', '/api/surveys/' + id, d),
     deleteSurvey: (id) => req('DELETE', '/api/surveys/' + id),
 
+    // Clinic schedule (客户出门诊时间)
+    listHospitals: () => req('GET', '/api/clinic_schedule/meta/hospitals'),
+    saveHospitals: (list) => req('PUT', '/api/clinic_schedule/meta/hospitals', list),
+    listSchedule: (weekStart) => req('GET', '/api/clinic_schedule' + (weekStart ? '?weekStart=' + weekStart : '')),
+    createSchedule: (d) => req('POST', '/api/clinic_schedule', d),
+    updateSchedule: (id, d) => req('PUT', '/api/clinic_schedule/' + id, d),
+    deleteSchedule: (id) => req('DELETE', '/api/clinic_schedule/' + id),
+
     // Backup / stats
     stats: () => req('GET', '/api/stats'),
     exportBackup: () => '/api/backup',
