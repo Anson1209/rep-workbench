@@ -679,10 +679,9 @@ a.link { color: var(--primary); text-decoration: none; }
 .cell-item .item-hosp {
   flex: 1 1 0;
   min-width: 0;
-  display: block;
   overflow: hidden;
 }
-.cell-item .item-hosp .hosp-tag {
+.cell-item .hosp-tag {
   display: block;
   font-size: 10px;
   color: var(--primary);
