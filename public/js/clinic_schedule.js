@@ -127,7 +127,7 @@
   function openScheduleForm(it, preset) {
     const isNew = !it;
     modal({
-      title: isNew ? '新增出门诊安排' : '编辑出门诊安排',
+      title: isNew ? '新增门诊安排' : '编辑门诊安排',
       body: scheduleForm(it, preset),
       footer: [
         ...(isNew ? [] : [{ label: '删除', cls: 'btn-danger', onClick: async (c) => {
