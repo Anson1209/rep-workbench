@@ -28,11 +28,11 @@
       '<div class="section-head"><h2>问卷调研台账</h2>' +
         '<span class="sub">按项目分额度（大区 ¥500 / BU ¥800），每位专家 ≤3 次，相邻两次 ≥30 天</span>' +
         '<span class="spacer"></span><button class="btn btn-primary" id="addSurveyBtn">+ 新增记录</button></div>' +
-      // 总计区：根据当前列表实时统计大区 / BU / 合计条数
+      // 总计区：根据当前列表实时统计大区 / BU / 合计条数。点击可作为项目类型快捷筛选。
       '<div class="survey-totals" id="surveyTotals">' +
-        '<span class="total-chip total-region">大区 <strong id="total_region">0</strong> 条</span>' +
-        '<span class="total-chip total-bu">BU <strong id="total_bu">0</strong> 条</span>' +
-        '<span class="total-chip total-grand">合计 <strong id="total_all">0</strong> 条</span>' +
+        '<button type="button" class="total-chip total-region" data-filter-type="大区" title="点击只看大区项目">大区 <strong id="total_region">0</strong> 条</button>' +
+        '<button type="button" class="total-chip total-bu" data-filter-type="BU" title="点击只看 BU 项目">BU <strong id="total_bu">0</strong> 条</button>' +
+        '<button type="button" class="total-chip total-grand" data-filter-type="" title="点击查看全部">合计 <strong id="total_all">0</strong> 条</button>' +
       '</div>' +
       '<div class="filters">' +
         '<div class="field"><label>调研时间</label><input class="input" type="date" id="f_date" value="' + esc(state.filters.date) + '"></div>' +
@@ -233,6 +233,30 @@
     r.textContent = region;
     b.textContent = bu;
     a.textContent = region + bu;
+    // 同步 chip 激活态：当前筛选的 projectType 决定高亮哪一个
+    const cur = state.filters.projectType || '';
+    const chips = document.querySelectorAll('#surveyTotals .total-chip');
+    chips.forEach(c => {
+      const t = c.getAttribute('data-filter-type') || '';
+      c.classList.toggle('is-active', t === cur);
+    });
+  }
+
+  // 绑定总计 chip 的点击 → 设为项目类型筛选（''=全部）
+  function bindTotalChips() {
+    const root = document.getElementById('surveyTotals');
+    if (!root) return;
+    root.addEventListener('click', (ev) => {
+      const chip = ev.target.closest('.total-chip');
+      if (!chip) return;
+      const t = chip.getAttribute('data-filter-type') || '';
+      if (state.filters.projectType === t) return; // 已激活则不重复加载
+      state.filters.projectType = t;
+      // 同步下拉框显示
+      const sel = document.getElementById('f_projectType');
+      if (sel) sel.value = t;
+      load();
+    });
   }
 
   function renderBody() {
@@ -269,6 +293,7 @@
       state.filters = { date: '', projectType: '', reminder: '', q: '' };
       view.innerHTML = shellHTML();
       wireFilters(view);
+      bindTotalChips();
       load();
     };
     document.getElementById('surveyBody').addEventListener('click', async (ev) => {
@@ -309,6 +334,7 @@
     async render(view) {
       view.innerHTML = shellHTML();
       wireFilters(view);
+      bindTotalChips();
       load();
     }
   };
