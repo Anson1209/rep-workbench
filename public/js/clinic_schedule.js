@@ -32,7 +32,7 @@
     return '<div class="card">' +
       '<div class="cs-head">' +
         '<div class="cs-titles">' +
-          '<div class="cs-title">客户出门诊时间</div>' +
+          '<div class="cs-title">门诊时间</div>' +
           '<div class="cs-sub">长期固定安排 · 每个时段可容纳多家医院客户</div>' +
         '</div>' +
         '<span class="spacer"></span>' +
@@ -80,7 +80,7 @@
     document.getElementById('csTable').innerHTML = head + rows;
 
     const total = state.items.length;
-    document.getElementById('csHint').textContent = '共 ' + total + ' 条出门诊安排';
+    document.getElementById('csHint').textContent = '共 ' + total + ' 条门诊安排';
   }
 
   function itemCellHTML(it) {
@@ -115,7 +115,7 @@
       '</div>' +
       '<div class="field"><label>客户姓名 <span class="req">*</span></label>' +
         '<input class="input" id="cs_name" value="' + esc(e.customerName || '') + '" placeholder="如 张主任"></div>' +
-      '<div class="field"><label>科室项目</label>' +
+      '<div class="field"><label>科室</label>' +
         '<input class="input" id="cs_dept" placeholder="如 泌尿外科（选填）" value="' + esc(e.department || '') + '"></div>' +
       '<div class="field"><label>医院名称</label>' +
         '<input class="input" id="cs_hosp" placeholder="如 协和医院（选填）" value="' + esc(e.hospitalName || '') + '"></div>' +
