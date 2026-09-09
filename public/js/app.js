@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   // Build fingerprint — 在浏览器 F12 控制台里看，用来判断线上是不是最新代码
-  console.log('%c[rep-workbench] build e4f5g7h · 2026-09-09 21:18 · 「出门诊」→「专家门诊」+ 模块标题「门诊时间」+ 弹窗「科室」+ 科室紧贴姓名下端小字号', 'background:#0a7;color:#fff;padding:2px 6px;border-radius:4px');
+  console.log('%c[rep-workbench] build f1x2k9m · 2026-09-09 22:55 · 周日列被挤到屏幕外→版面缩小（列宽155→124、卡片padding/字号收紧、一屏显示完整7天）', 'background:#0a7;color:#fff;padding:2px 6px;border-radius:4px');
 
   const { esc, toast } = window.UI;
 
