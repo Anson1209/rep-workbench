@@ -647,10 +647,9 @@ a.link { color: var(--primary); text-decoration: none; }
   display: flex; flex-direction: column; gap: 5px;
 }
 .cell-item {
-  position: relative;
   background: var(--primary-soft);
   border-radius: 6px;
-  padding: 6px 10px 20px;
+  padding: 6px 10px;
   cursor: pointer;
   border-left: 3px solid var(--primary);
   transition: transform 120ms, box-shadow 120ms;
@@ -661,22 +660,27 @@ a.link { color: var(--primary); text-decoration: none; }
   font-size: 13px; font-weight: 700; color: var(--text);
   line-height: 1.25;
 }
+.cell-item .item-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  min-width: 0;
+}
 .cell-item .item-dept {
-  position: absolute;
-  right: 10px;
-  bottom: 6px;
   font-size: 10px;
   color: var(--text-soft);
   line-height: 1.2;
   font-weight: 400;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 40%;
-  text-align: right;
+  flex-shrink: 0;
 }
 .cell-item .item-hosp {
-  margin-top: 4px;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  justify-content: flex-start;
 }
 .cell-item .item-hosp .hosp-tag {
   display: inline-block;
@@ -687,9 +691,9 @@ a.link { color: var(--primary); text-decoration: none; }
   padding: 1px 6px;
   font-weight: 500;
   white-space: nowrap;
-  max-width: calc(100% - 50px);  /* 给右下角科室的 40% 留空间 */
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%;
 }
 .cell-item .item-time {
   font-size: 11px; color: var(--text-soft);
