@@ -347,6 +347,24 @@ table.tbl tr:hover td { background: var(--surface-2); }
 .filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; align-items: flex-end; }
 .filters .field { margin-bottom: 0; }
 
+/* ---------- 问卷台账：总计区（标题下方） ---------- */
+.survey-totals { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.total-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 999px;
+  background: var(--surface); border: 1px solid var(--border);
+  font-size: 13px; color: var(--text);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.total-chip strong {
+  font-size: 18px; font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 24px; text-align: center;
+}
+.total-chip.total-region { background: #ede9fe; color: #6d28d9; border-color: #c4b5fd; }
+.total-chip.total-bu     { background: #fef3c7; color: #b45309; border-color: #fde68a; }
+.total-chip.total-grand  { background: #f1f5f9; color: #334155; border-color: #cbd5e1; }
+
 .empty-state { text-align: center; padding: 48px 20px; color: var(--text-faint); }
 .empty-state .big { font-size: 40px; margin-bottom: 8px; }
 
