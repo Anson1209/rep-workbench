@@ -576,7 +576,7 @@ a.link { color: var(--primary); text-decoration: none; }
 .cs-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .cs-table {
   display: grid;
-  grid-template-columns: 50px repeat(7, minmax(88px, 1fr));
+  grid-template-columns: 46px repeat(7, minmax(80px, 110px));
   border: 1px solid var(--border);
   border-radius: 10px;
   overflow: hidden;
