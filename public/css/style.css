@@ -677,7 +677,7 @@ a.link { color: var(--primary); text-decoration: none; }
 }
 .cell-item .item-hosp {
   margin-top: 4px;
-  padding-right: 60px;  /* 给右下角科室留空间 */
+  max-width: 60%;
 }
 .cell-item .item-hosp .hosp-tag {
   display: inline-block;
@@ -687,6 +687,10 @@ a.link { color: var(--primary); text-decoration: none; }
   border-radius: 3px;
   padding: 1px 6px;
   font-weight: 500;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .cell-item .item-time {
   font-size: 11px; color: var(--text-soft);
