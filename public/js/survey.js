@@ -252,10 +252,10 @@
       const t = chip.getAttribute('data-filter-type') || '';
       if (state.filters.projectType === t) return; // 已激活则不重复加载
       state.filters.projectType = t;
-      // 同步下拉框显示
+      // 同步下拉框显示。sel.value = t 会触发 onchange 事件 → 走统一的 load 流程
+      // （避免直接调 load 又被 onchange 再调一次造成重复请求）
       const sel = document.getElementById('f_projectType');
       if (sel) sel.value = t;
-      load();
     });
   }
 
@@ -282,11 +282,27 @@
 
   function wireFilters(view) {
     document.getElementById('addSurveyBtn').onclick = () => openForm(null);
+
+    // 单字段实时筛选：选完立即生效，不用再点「筛选」按钮
+    // 模糊搜索（f_q）保留回车键 + 失焦触发，避免逐字输入时频繁请求
+    const fDate = document.getElementById('f_date');
+    const fType = document.getElementById('f_projectType');
+    const fRem  = document.getElementById('f_reminder');
+    const fQ    = document.getElementById('f_q');
+    if (fDate) fDate.onchange = () => { state.filters.date = fDate.value; load(); };
+    if (fType) fType.onchange = () => { state.filters.projectType = fType.value; load(); };
+    if (fRem)  fRem.onchange  = () => { state.filters.reminder  = fRem.value;  load(); };
+    if (fQ) {
+      fQ.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); state.filters.q = fQ.value.trim(); load(); } };
+      fQ.onblur    = () => { state.filters.q = fQ.value.trim(); load(); };
+    }
+
+    // 「筛选」按钮仍保留：等价于「回车」触发，会读取所有字段
     document.getElementById('applyFilter').onclick = () => {
-      state.filters.date = document.getElementById('f_date').value;
-      state.filters.projectType = document.getElementById('f_projectType').value;
-      state.filters.reminder = document.getElementById('f_reminder').value;
-      state.filters.q = document.getElementById('f_q').value.trim();
+      state.filters.date        = fDate ? fDate.value : '';
+      state.filters.projectType = fType ? fType.value : '';
+      state.filters.reminder    = fRem  ? fRem.value  : '';
+      state.filters.q           = fQ    ? fQ.value.trim() : '';
       load();
     };
     document.getElementById('clearFilter').onclick = () => {
