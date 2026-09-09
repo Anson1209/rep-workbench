@@ -347,15 +347,20 @@ table.tbl tr:hover td { background: var(--surface-2); }
 .filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; align-items: flex-end; }
 .filters .field { margin-bottom: 0; }
 
-/* ---------- 问卷台账：总计区（标题下方） ---------- */
+/* ---------- 问卷台账：总计区（标题下方，可点击切换项目类型） ---------- */
 .survey-totals { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
 .total-chip {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 6px 14px; border-radius: 999px;
   background: var(--surface); border: 1px solid var(--border);
-  font-size: 13px; color: var(--text);
+  font-size: 13px; color: var(--text); font-family: inherit; line-height: 1.2;
   box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  cursor: pointer; user-select: none;
+  transition: transform .08s ease, box-shadow .15s ease, filter .15s ease;
 }
+.total-chip:hover { filter: brightness(0.97); box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+.total-chip:active { transform: translateY(1px); }
+.total-chip:focus-visible { outline: 2px solid #93c5fd; outline-offset: 2px; }
 .total-chip strong {
   font-size: 18px; font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -364,6 +369,20 @@ table.tbl tr:hover td { background: var(--surface-2); }
 .total-chip.total-region { background: #ede9fe; color: #6d28d9; border-color: #c4b5fd; }
 .total-chip.total-bu     { background: #fef3c7; color: #b45309; border-color: #fde68a; }
 .total-chip.total-grand  { background: #f1f5f9; color: #334155; border-color: #cbd5e1; }
+/* 激活态：边框加粗 + 外发光 + 提亮底色 */
+.total-chip.is-active {
+  border-width: 2px; padding: 5px 13px; /* border+1 厚度补偿，避免内容跳动 */
+  filter: saturate(1.15);
+}
+.total-chip.total-region.is-active {
+  background: #ddd6fe; box-shadow: 0 0 0 3px rgba(124,58,237,0.18);
+}
+.total-chip.total-bu.is-active {
+  background: #fde68a; box-shadow: 0 0 0 3px rgba(180,83,9,0.18);
+}
+.total-chip.total-grand.is-active {
+  background: #e2e8f0; box-shadow: 0 0 0 3px rgba(51,65,85,0.18);
+}
 
 .empty-state { text-align: center; padding: 48px 20px; color: var(--text-faint); }
 .empty-state .big { font-size: 40px; margin-bottom: 8px; }
