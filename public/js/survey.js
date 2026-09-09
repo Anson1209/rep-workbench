@@ -252,10 +252,11 @@
       const t = chip.getAttribute('data-filter-type') || '';
       if (state.filters.projectType === t) return; // 已激活则不重复加载
       state.filters.projectType = t;
-      // 同步下拉框显示。sel.value = t 会触发 onchange 事件 → 走统一的 load 流程
-      // （避免直接调 load 又被 onchange 再调一次造成重复请求）
+      // 同步下拉框显示。注：sel.value = t 不会自动 dispatch change 事件，
+      // 所以这里要主动调 load()（下拉框的 onchange 与此无关，只响应用户真实下拉操作）
       const sel = document.getElementById('f_projectType');
       if (sel) sel.value = t;
+      load();
     });
   }
 
