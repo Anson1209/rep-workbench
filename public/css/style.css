@@ -672,7 +672,7 @@ a.link { color: var(--primary); text-decoration: none; }
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 55%;
+  max-width: 40%;
   text-align: right;
 }
 .cell-item .item-hosp {
@@ -687,7 +687,7 @@ a.link { color: var(--primary); text-decoration: none; }
   padding: 1px 6px;
   font-weight: 500;
   white-space: nowrap;
-  max-width: calc(100% - 70px);  /* 留出右下角科室的 55% 空间 */
+  max-width: calc(100% - 50px);  /* 给右下角科室的 40% 留空间 */
   overflow: hidden;
   text-overflow: ellipsis;
 }
