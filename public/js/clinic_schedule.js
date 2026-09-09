@@ -84,10 +84,12 @@
   }
 
   function itemCellHTML(it) {
-    const time = it.timeRange ? '<div class="item-time">' + esc(it.timeRange) + '</div>' : '';
+    const hospital = it.hospitalName ? '<div class="item-hosp"><span class="hosp-tag">' + esc(it.hospitalName) + '</span></div>' : '';
+    const dept = it.department ? '<div class="item-dept">' + esc(it.department) + '</div>' : '';
     return '<div class="cell-item" data-id="' + esc(it.id) + '">' +
       '<div class="item-name">' + esc(it.customerName) + '</div>' +
-      time +
+      dept +
+      hospital +
     '</div>';
   }
 
@@ -113,8 +115,10 @@
       '</div>' +
       '<div class="field"><label>客户姓名 <span class="req">*</span></label>' +
         '<input class="input" id="cs_name" value="' + esc(e.customerName || '') + '" placeholder="如 张主任"></div>' +
-      '<div class="field"><label>时间</label>' +
-        '<input class="input" id="cs_time" placeholder="如 09:00-11:30（选填）" value="' + esc(e.timeRange || '') + '"></div>' +
+      '<div class="field"><label>科室项目</label>' +
+        '<input class="input" id="cs_dept" placeholder="如 泌尿外科（选填）" value="' + esc(e.department || '') + '"></div>' +
+      '<div class="field"><label>医院名称</label>' +
+        '<input class="input" id="cs_hosp" placeholder="如 协和医院（选填）" value="' + esc(e.hospitalName || '') + '"></div>' +
       '<div class="field"><label>备注</label>' +
         '<textarea class="textarea" id="cs_note" placeholder="选填">' + esc(e.note || '') + '</textarea></div>' +
       '<div class="field-err" id="cs_err"></div>';
@@ -137,7 +141,8 @@
             weekday: Number(document.getElementById('cs_weekday').value),
             period: document.getElementById('cs_period').value,
             customerName: document.getElementById('cs_name').value,
-            timeRange: document.getElementById('cs_time').value,
+            department: document.getElementById('cs_dept').value,
+            hospitalName: document.getElementById('cs_hosp').value,
             note: document.getElementById('cs_note').value
           };
           const err = document.getElementById('cs_err');
