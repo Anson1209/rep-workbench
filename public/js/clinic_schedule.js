@@ -84,12 +84,13 @@
   }
 
   function itemCellHTML(it) {
-    const hospital = it.hospitalName ? '<div class="item-hosp"><span class="hosp-tag">' + esc(it.hospitalName) + '</span></div>' : '';
-    const dept = it.department ? '<div class="item-dept">' + esc(it.department) + '</div>' : '';
+    // 底部一行：胶囊在左、科室在右（右下角）
+    const hospSpan = it.hospitalName ? '<span class="hosp-tag">' + esc(it.hospitalName) + '</span>' : '';
+    const deptSpan = it.department ? '<span class="item-dept">' + esc(it.department) + '</span>' : '';
+    const bottom = (hospSpan || deptSpan) ? '<div class="item-bottom">' + hospSpan + deptSpan + '</div>' : '';
     return '<div class="cell-item" data-id="' + esc(it.id) + '">' +
       '<div class="item-name">' + esc(it.customerName) + '</div>' +
-      dept +
-      hospital +
+      bottom +
     '</div>';
   }
 
