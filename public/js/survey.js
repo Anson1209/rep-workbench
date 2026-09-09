@@ -28,6 +28,12 @@
       '<div class="section-head"><h2>问卷调研台账</h2>' +
         '<span class="sub">按项目分额度（大区 ¥500 / BU ¥800），每位专家 ≤3 次，相邻两次 ≥30 天</span>' +
         '<span class="spacer"></span><button class="btn btn-primary" id="addSurveyBtn">+ 新增记录</button></div>' +
+      // 总计区：根据当前列表实时统计大区 / BU / 合计条数
+      '<div class="survey-totals" id="surveyTotals">' +
+        '<span class="total-chip total-region">大区 <strong id="total_region">0</strong> 条</span>' +
+        '<span class="total-chip total-bu">BU <strong id="total_bu">0</strong> 条</span>' +
+        '<span class="total-chip total-grand">合计 <strong id="total_all">0</strong> 条</span>' +
+      '</div>' +
       '<div class="filters">' +
         '<div class="field"><label>调研时间</label><input class="input" type="date" id="f_date" value="' + esc(state.filters.date) + '"></div>' +
         '<div class="field"><label>项目类型</label><select class="select" id="f_projectType">' +
@@ -217,9 +223,22 @@
     });
   }
 
+  function updateTotals() {
+    const r = document.getElementById('total_region');
+    const b = document.getElementById('total_bu');
+    const a = document.getElementById('total_all');
+    if (!r || !b || !a) return;
+    const region = state.list.filter(s => (s.projectType || '') === '大区').length;
+    const bu     = state.list.filter(s => (s.projectType || '') === 'BU').length;
+    r.textContent = region;
+    b.textContent = bu;
+    a.textContent = region + bu;
+  }
+
   function renderBody() {
     const body = document.getElementById('surveyBody');
     if (body) body.innerHTML = bodyHTML();
+    updateTotals();
   }
 
   async function load() {
