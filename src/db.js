@@ -13,7 +13,7 @@ const EMPTY = {
   meta: { version: 1, createdAt: new Date().toISOString() }
 };
 
-const KEYS = ['customers', 'events', 'surveys', 'meta'];
+const KEYS = ['customers', 'events', 'surveys', 'meta', 'clinic_schedule'];
 
 let cache = null;
 let writeChain = Promise.resolve();
