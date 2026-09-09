@@ -21,7 +21,7 @@
     { key: 'customers', label: '客户资料', icon: ICON.customers, title: '客户资料', module: 'Customers' },
     { key: 'calendar', label: '关键事宜', icon: ICON.calendar, title: '关键事宜提醒', module: 'Calendar' },
     { key: 'survey', label: '问卷台账', icon: ICON.survey, title: '问卷调研台账', module: 'Survey' },
-    { key: 'clinic', label: '出门诊', icon: ICON.clinic, title: '客户出门诊时间', module: 'ClinicSchedule' },
+    { key: 'clinic', label: '专家门诊', icon: ICON.clinic, title: '门诊时间', module: 'ClinicSchedule' },
     { key: 'add', label: '添加模块', icon: ICON.add, title: '添加新板块', placeholder: true },
     { key: 'settings', label: '设置', icon: ICON.settings, title: '设置', module: 'Settings' }
   ];
