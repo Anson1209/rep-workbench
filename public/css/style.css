@@ -563,19 +563,20 @@ a.link { color: var(--primary); text-decoration: none; }
   .dash-head .dash-sub { margin-left: 0; }
 }
 
-/* ============== 客户出门诊时间（周视图） ============== */
+/* ============== 客户出门诊时间（长期固定 · 7天 × 上午/下午） ============== */
 .cs-head {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 14px; flex-wrap: wrap;
 }
-.cs-head .cs-title {
-  font-size: 16px; font-weight: 700; color: var(--text);
-  min-width: 180px; text-align: center;
-}
+.cs-head .cs-titles { display: flex; flex-direction: column; gap: 2px; }
+.cs-head .cs-title { font-size: 16px; font-weight: 700; color: var(--text); }
+.cs-head .cs-sub { font-size: 12px; color: var(--text-soft); }
+.cs-head .spacer { flex: 1; }
+
 .cs-table-wrap { overflow-x: auto; }
 .cs-table {
   display: grid;
-  grid-template-columns: 130px repeat(7, minmax(120px, 1fr));
+  grid-template-columns: 72px repeat(7, minmax(110px, 1fr));
   border: 1px solid var(--border);
   border-radius: 10px;
   overflow: hidden;
@@ -590,12 +591,15 @@ a.link { color: var(--primary); text-decoration: none; }
   background: var(--surface-2);
   font-weight: 600;
 }
-.cs-head-row .cs-cell { padding: 10px 8px; text-align: center; border-bottom: 1px solid var(--border); }
+.cs-head-row .cs-cell {
+  padding: 12px 8px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
 .cs-cell {
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   padding: 8px;
-  min-height: 88px;
   background: var(--surface);
   position: relative;
   vertical-align: top;
@@ -603,64 +607,60 @@ a.link { color: var(--primary); text-decoration: none; }
 .cs-row:last-child .cs-cell { border-bottom: none; }
 .cs-cell:last-child { border-right: none; }
 
-.cs-cell-h {
-  display: flex; align-items: center; gap: 8px;
-  font-weight: 700; color: var(--text);
+/* 表头列：时段 / 周一~周日 */
+.cs-cell-h { background: var(--surface-2); }
+.cs-cell-corner { font-weight: 700; color: var(--text); }
+.cs-cell-dow { text-align: center; }
+.cs-cell-dow .dow-cn {
+  font-size: 14px; font-weight: 700; color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 左侧时段标签：上午 / 下午 */
+.cs-cell-period {
+  display: flex; align-items: center; justify-content: center;
   background: var(--surface-2);
 }
-.cs-cell-h .cs-bar {
-  display: inline-block; width: 4px; height: 28px;
-  border-radius: 3px; flex-shrink: 0;
+.cs-cell-period .period-label {
+  font-size: 14px; font-weight: 700; color: var(--text);
+  letter-spacing: 0.04em;
 }
-.cs-cell-h .hosp-name { flex: 1; }
-.cs-cell-h .hosp-meta { font-size: 11px; color: var(--text-faint); font-weight: 400; }
-.cs-cell-h .placeholder { color: var(--text-faint); font-weight: 400; font-style: italic; }
 
-.cs-cell-dow { text-align: center; }
-.cs-cell-dow .dow-label { font-size: 14px; font-weight: 700; color: var(--text); }
-.cs-cell-dow .dow-date { font-size: 11px; color: var(--text-soft); margin-top: 2px; font-variant-numeric: tabular-nums; }
-.cs-cell-dow.today, .cs-cell-body.today { background: rgba(59,130,246,0.06); }
+/* 主单元格（容纳 4 个客户卡片） */
+.cs-cell-body {
+  padding: 8px;
+  min-height: 180px;
+  cursor: pointer;
+  transition: background 120ms;
+}
+.cs-cell-body:hover { background: rgba(59, 130, 246, 0.06); }
 
- cs-cell-body { padding: 6px; cursor: pointer; transition: background 120ms; }
-.cs-cell-body:hover { background: rgba(59,130,246,0.08); }
-.cs-cell-body.disabled { background: var(--surface-2); cursor: not-allowed; opacity: 0.55; }
-.cs-cell-body.disabled:hover { background: var(--surface-2); }
 .cs-cell-body .cell-add {
   display: flex; align-items: center; justify-content: center;
-  height: 70px;
+  height: 160px;
   color: var(--text-faint); font-size: 22px; opacity: 0;
   transition: opacity 120ms;
 }
-.cs-cell-body:hover .cell-add { opacity: 0.6; }
-.cs-cell-body .cell-empty {
-  display: flex; align-items: center; justify-content: center;
-  height: 70px; color: var(--text-faint); font-size: 12px;
+.cs-cell-body:hover .cell-add { opacity: 0.5; }
+
+.cs-cell-body .cell-list {
+  display: flex; flex-direction: column; gap: 6px;
 }
-.cs-cell-body .cell-list { display: flex; flex-direction: column; gap: 4px; }
 .cell-item {
   background: var(--primary-soft);
-  border-radius: 6px; padding: 6px 8px;
+  border-radius: 6px;
+  padding: 6px 10px;
   cursor: pointer;
   border-left: 3px solid var(--primary);
   transition: transform 120ms, box-shadow 120ms;
 }
 .cell-item:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
-.cell-item .item-name { font-size: 13px; font-weight: 700; color: var(--text); line-height: 1.3; }
-.cell-item .item-time { font-size: 11px; color: var(--text-soft); margin-top: 1px; }
-.cell-item .item-dept {
-  display: inline-block; font-size: 10px;
-  background: var(--surface-2); color: var(--text-soft);
-  border-radius: 3px; padding: 1px 5px; margin-top: 3px;
+.cell-item .item-name {
+  font-size: 13px; font-weight: 700; color: var(--text);
+  line-height: 1.3;
 }
-
-/* 医院配置弹窗 */
-#hospList .hosp-row {
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 8px;
+.cell-item .item-time {
+  font-size: 11px; color: var(--text-soft);
+  margin-top: 1px;
+  font-variant-numeric: tabular-nums;
 }
-#hospList .hosp-color {
-  display: inline-block; width: 18px; height: 18px;
-  border-radius: 4px; flex-shrink: 0;
-  border: 1px solid var(--border);
-}
-#hospList .hosp-name-input { flex: 1; }
