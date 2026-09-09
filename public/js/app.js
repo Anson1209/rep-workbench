@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   // Build fingerprint — 在浏览器 F12 控制台里看，用来判断线上是不是最新代码
-  console.log('%c[rep-workbench] build 6d4b8c2 · 2026-09-09 19:25 · 出门诊简化为长期固定（7天 × 上午/下午，每格可容纳多家医院客户）', 'background:#0a7;color:#fff;padding:2px 6px;border-radius:4px');
+  console.log('%c[rep-workbench] build a1b2c3d · 2026-09-09 20:18 · 出门诊弹窗加「科室项目」「医院名称」字段', 'background:#0a7;color:#fff;padding:2px 6px;border-radius:4px');
 
   const { esc, toast } = window.UI;
 
