@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   // Build fingerprint — 在浏览器 F12 控制台里看，用来判断线上是不是最新代码
-  console.log('%c[rep-workbench] build a1b2c3d · 2026-09-09 20:18 · 出门诊弹窗加「科室项目」「医院名称」字段', 'background:#0a7;color:#fff;padding:2px 6px;border-radius:4px');
+  console.log('%c[rep-workbench] build e4f5g7h · 2026-09-09 21:18 · 「出门诊」→「专家门诊」+ 模块标题「门诊时间」+ 弹窗「科室」+ 科室紧贴姓名下端小字号', 'background:#0a7;color:#fff;padding:2px 6px;border-radius:4px');
 
   const { esc, toast } = window.UI;
 
