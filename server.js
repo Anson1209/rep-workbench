@@ -87,6 +87,8 @@ app.post('/api/backup', (req, res) => {
   cache.customers = body.customers || [];
   cache.events = body.events || [];
   cache.surveys = body.surveys || [];
+  cache.hospitals = body.hospitals || [];
+  cache.clinic_schedule = body.clinic_schedule || [];
   cache.meta = body.meta || { version: 1, createdAt: new Date().toISOString() };
   db.save().then(() => res.json({ ok: true })).catch(e => res.status(500).json({ error: e.message }));
 });
@@ -97,7 +99,9 @@ app.get('/api/stats', (req, res) => {
   res.json({
     customers: d.customers.length,
     events: d.events.length,
-    surveys: d.surveys.length
+    surveys: d.surveys.length,
+    clinic_schedule: d.clinic_schedule.length,
+    hospitals: d.hospitals.length
   });
 });
 
