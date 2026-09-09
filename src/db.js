@@ -35,6 +35,8 @@ function normalize(d) {
   if (!Array.isArray(d.customers)) d.customers = [];
   if (!Array.isArray(d.events)) d.events = [];
   if (!Array.isArray(d.surveys)) d.surveys = [];
+  if (!Array.isArray(d.hospitals)) d.hospitals = [];
+  if (!Array.isArray(d.clinic_schedule)) d.clinic_schedule = [];
   if (!d.meta) d.meta = JSON.parse(JSON.stringify(EMPTY.meta));
   return d;
 }
