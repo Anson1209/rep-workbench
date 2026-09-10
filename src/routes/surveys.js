@@ -112,7 +112,7 @@ router.post('/', (req, res) => {
     return res.status(400).json({ error: '请选择项目类型（大区/BU）' });
   }
   if (!expertName || !expertName.trim()) return res.status(400).json({ error: '专家姓名必填' });
-  if (!usageDate || !/^\d{4}-\d{2}-\d{2}$/.test(usageDate)) {
+  if (usageDate && !/^\d{4}-\d{2}-\d{2}$/.test(usageDate)) {
     return res.status(400).json({ error: '调研日期格式不正确' });
   }
   const col = db.getCollection('surveys');
