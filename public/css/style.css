@@ -235,6 +235,18 @@ input, select, textarea { font-family: inherit; font-size: 15px; }
 }
 .cust-card .c-name { font-weight: 700; font-size: 16px; }
 .cust-card .c-hosp { color: var(--text-soft); font-size: 13px; }
+.scope-chip {
+  flex: none;
+  display: inline-block;
+  font-size: 11px; font-weight: 600;
+  padding: 2px 8px; border-radius: 10px; line-height: 1.4;
+  background: rgba(59, 130, 246, 0.12); color: var(--primary);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  white-space: nowrap;
+}
+.cust-card .c-head .scope-chip { margin-left: auto; }
+.scope-BU { background: rgba(16, 185, 129, 0.12); color: #0f9d6b; border-color: rgba(16, 185, 129, 0.25); }
+.scope-大区BU { background: rgba(168, 85, 247, 0.12); color: #9333ea; border-color: rgba(168, 85, 247, 0.25); }
 .c-meta { font-size: 13px; color: var(--text-soft); display: flex; flex-direction: column; gap: 4px; }
 .c-meta .row { display: flex; gap: 8px; align-items: center; }
 .c-meta .k { color: var(--text-faint); min-width: 64px; }
