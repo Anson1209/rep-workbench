@@ -70,12 +70,14 @@
           '<div class="avatar">' + esc(initials(c.name)) + '</div>' +
           '<div><div class="c-name">' + esc(c.name) + '</div>' +
           '<div class="c-hosp">' + esc(c.hospital || '未填写医院') + '</div></div>' +
+          (c.surveyScope ? '<span class="scope-chip scope-' + esc((c.surveyScope||'').replace(/[^a-zA-Z一-龥]/g,'')) + '">' + esc(c.surveyScope) + '</span>' : '') +
         '</div>' +
         '<div class="c-meta">' +
           metaRow('手机号', pv, true) +
           metaRow('身份证', idv, true) +
           metaRow('银行卡', bv, true) +
           metaRow('开户行', bnv, true) +
+          (c.surveyScope ? metaRow('调研范围', '<span class="scope-chip scope-' + esc((c.surveyScope||'').replace(/[^a-zA-Z一-龥]/g,'')) + '">' + esc(c.surveyScope) + '</span>', false) : '') +
         '</div>' +
         '<div class="flex" style="margin-top:10px;gap:8px;flex-wrap:wrap">' + revealBtn +
           '<button class="btn btn-sm" data-act="edit" data-id="' + c.id + '">编辑</button>' +
@@ -184,6 +186,10 @@
         '<div class="field"><label>姓名 <span class="req">*</span></label><input class="input" id="f_name" value="' + esc(c.name || '') + '"></div>' +
         '<div class="field"><label>手机号</label><input class="input" id="f_phone" value="' + esc(c.phone || '') + '" inputmode="numeric" placeholder="选填"></div>' +
       '</div>' +
+      '<div class="field"><label>调研范围</label>' +
+        '<input class="input" id="f_surveyScope" value="' + esc(c.surveyScope || '') + '" placeholder="选填，如：大区+BU / BU" list="surveyScopeList">' +
+        '<datalist id="surveyScopeList"><option value="大区+BU"><option value="大区"><option value="BU"></datalist>' +
+      '</div>' +
       '<div class="form-row">' +
         '<div class="field"><label>身份证号</label><input class="input" id="f_id" value="' + esc(c.idCard || '') + '" placeholder="选填"></div>' +
         '<div class="field"><label>银行卡号</label><input class="input" id="f_bank" value="' + esc(c.bankCard || '') + '" placeholder="选填"></div>' +
@@ -217,7 +223,8 @@
             phone: document.getElementById('f_phone').value.trim(),
             idCard: document.getElementById('f_id').value.trim(),
             bankCard: document.getElementById('f_bank').value.trim(),
-            bankName: document.getElementById('f_bankname').value.trim()
+            bankName: document.getElementById('f_bankname').value.trim(),
+            surveyScope: document.getElementById('f_surveyScope').value.trim()
           };
           const err = document.getElementById('f_err');
           if (!data.name) { err.textContent = '姓名必填'; err.parentElement.classList.add('invalid'); return; }
