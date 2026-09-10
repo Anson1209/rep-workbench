@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   // Build fingerprint — 在浏览器 F12 控制台里看，用来判断线上是不是最新代码
-  console.log('%c[rep-workbench] build g2h4k8m · 2026-09-10 21:50 · 客户资料新增 surveyScope 字段(调研范围 大区+BU/BU)，卡片显示范围标签；问卷调研记录仍由台账后续自行补录日期', 'background:#0a7;color:#fff;padding:2px 6px;border-radius:4px');
+  console.log('%c[rep-workbench] build h3k8m2p · 2026-09-10 22:20 · 问卷台账usageDate改为可选(支持后续补录日期)；回退客户资料surveyScope误加字段，9人调研改入问卷台账', 'background:#0a7;color:#fff;padding:2px 6px;border-radius:4px');
 
   const { esc, toast } = window.UI;
 
