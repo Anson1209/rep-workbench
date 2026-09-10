@@ -704,3 +704,56 @@ a.link { color: var(--primary); text-decoration: none; }
   margin-top: 1px;
   font-variant-numeric: tabular-nums;
 }
+
+/* 合并卡片：同医院+同科室+同时段多人合并为一张，姓名顿号连接 */
+.cell-item-merged {
+  position: relative;
+}
+.cell-item .item-name-multi {
+  padding-right: 24px;       /* 给角标留位 */
+  word-break: break-all;     /* 4字以上自动换行 */
+}
+.cell-item .merged-count {
+  position: absolute;
+  top: 5px; right: 6px;
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--primary);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 8px;
+  line-height: 1.3;
+  letter-spacing: 0.2px;
+  pointer-events: none;
+}
+
+/* 合并卡片点击 → 弹组内 N 条列表 */
+.group-list { display: flex; flex-direction: column; gap: 8px; }
+.group-list-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  background: var(--primary-soft);
+  border-left: 3px solid var(--primary);
+  border-radius: 6px;
+}
+.group-list-item .gli-main { flex: 1; min-width: 0; }
+.group-list-item .gli-name {
+  font-size: 14px; font-weight: 700; color: var(--text);
+  line-height: 1.3;
+  margin-bottom: 3px;
+}
+.group-list-item .gli-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+.group-list-item .gli-pill {
+  display: inline-block;
+  font-size: 10px; font-weight: 500;
+  background: rgba(59, 130, 246, 0.10);
+  color: var(--primary);
+  padding: 1px 6px;
+  border-radius: 3px;
+  line-height: 1.5;
+}
+.group-list-item .gli-pill-dept {
+  background: rgba(0,0,0,0.05);
+  color: var(--text-soft);
+}
+.group-list-item .gli-actions { display: flex; gap: 6px; flex-shrink: 0; }
