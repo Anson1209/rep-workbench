@@ -187,6 +187,10 @@
           openScheduleForm(null, { weekday: w, period: p });
         }
       });
+
+      // B：门诊视图拉满整页（突破 .view 默认 max-width:1100）
+      const vw = document.getElementById('view');
+      if (vw) vw.style.maxWidth = '100%';
     }
   };
 
