@@ -172,7 +172,6 @@ router.put('/:id', (req, res) => {
   if (idCard !== undefined) c.idCardEnc = crypto.encrypt(idCard.trim());
   if (bankCard !== undefined) c.bankCardEnc = crypto.encrypt(bankCard.replace(/\s/g, '').trim());
   if (bankName !== undefined) c.bankName = (bankName || '').trim().slice(0, 40);
-  if (surveyScope !== undefined) c.surveyScope = (surveyScope || '').trim().slice(0, 20);
   c.updatedAt = new Date().toISOString();
   db.save().then(() => res.json(fullCustomer(c))).catch(e => res.status(500).json({ error: e.message }));
 });
