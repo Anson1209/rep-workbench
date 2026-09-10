@@ -574,6 +574,8 @@ a.link { color: var(--primary); text-decoration: none; }
 .cs-head .spacer { flex: 1; }
 
 .cs-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+/* B：门诊视图拉满整页（突破 .view 默认 max-width:1100，仅门诊页生效，不影响其他模块） */
+.view:has(#csTable) { max-width: 100%; }
 .cs-table {
   display: grid;
   /* B 改：7列等宽拉满整页（minmax(96px,1fr) 保证周一~周日间隔一致，窄屏横向滚动兜底） */
