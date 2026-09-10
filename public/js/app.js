@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   // Build fingerprint — 在浏览器 F12 控制台里看，用来判断线上是不是最新代码
-  console.log('%c[rep-workbench] build e5f8b2d · 2026-09-10 16:20 · 字号回调：姓名13/胶囊10/科室10+卡片padding5/7，更清爽', 'background:#0a7;color:#fff;padding:2px 6px;border-radius:4px');
+  console.log('%c[rep-workbench] build f6g9c3e · 2026-09-10 16:55 · 合并卡片：同医院+同科室+同时段→1张卡，姓名顿号连接+角标×N；点合并卡弹组内列表编辑/删除', 'background:#0a7;color:#fff;padding:2px 6px;border-radius:4px');
 
   const { esc, toast } = window.UI;
 
