@@ -70,7 +70,7 @@
         const k = w.dow + '|' + p.code;
         const list = byCell[k] || [];
         const inner = list.length
-          ? '<div class="cell-list">' + list.map(itemCellHTML).join('') + '</div>'
+          ? '<div class="cell-list">' + groupCellItems(list).map(cardHTML).join('') + '</div>'
           : '<div class="cell-add">+</div>';
         return '<div class="cs-cell cs-cell-body" data-w="' + w.dow + '" data-p="' + p.code + '">' + inner + '</div>';
       }).join('');
@@ -83,6 +83,32 @@
     document.getElementById('csHint').textContent = '共 ' + total + ' 条门诊安排';
   }
 
+  // 在同一 (weekday, period) 格里，按 (hospitalName, department) 二级合并
+  // 返回若干"卡片组"：单条组 [it] / 多人组 [it1,it2,...]
+  function groupCellItems(list) {
+    const byGrp = {};
+    list.forEach(it => {
+      const k = (it.hospitalName || '') + '||' + (it.department || '');
+      (byGrp[k] = byGrp[k] || []).push(it);
+    });
+    return Object.values(byGrp);
+  }
+
+  // 卡片渲染：单条 → 原视觉；多条 → 合并（姓名顿号连接，共享医院+科室，角标 ×N）
+  function cardHTML(group) {
+    if (group.length === 1) return itemCellHTML(group[0]);
+    const first = group[0];
+    const names = group.map(x => x.customerName).join('、');
+    const ids = group.map(x => x.id);
+    const hospSpan = first.hospitalName ? '<span class="hosp-tag">' + esc(first.hospitalName) + '</span>' : '';
+    const deptSpan = first.department ? '<span class="item-dept">' + esc(first.department) + '</span>' : '';
+    const bottom = (hospSpan || deptSpan) ? '<div class="item-bottom">' + hospSpan + deptSpan + '</div>' : '';
+    return '<div class="cell-item cell-item-merged" data-ids="' + ids.map(esc).join(',') + '" title="同医院+同科室共 ' + group.length + ' 人，点击查看/编辑">' +
+      '<div class="item-name item-name-multi">' + esc(names) + '<span class="merged-count">×' + group.length + '</span></div>' +
+      bottom +
+    '</div>';
+  }
+
   function itemCellHTML(it) {
     // 底部一行：胶囊在左、科室在右（右下角）
     const hospSpan = it.hospitalName ? '<span class="hosp-tag">' + esc(it.hospitalName) + '</span>' : '';
@@ -92,6 +118,47 @@
       '<div class="item-name">' + esc(it.customerName) + '</div>' +
       bottom +
     '</div>';
+  }
+
+  // 合并卡片点击 → 弹组内 N 条列表，每条带编辑/删除
+  function openGroupList(group) {
+    const html =
+      '<div class="group-list">' +
+        group.map(it =>
+          '<div class="group-list-item" data-id="' + esc(it.id) + '">' +
+            '<div class="gli-main">' +
+              '<div class="gli-name">' + esc(it.customerName) + '</div>' +
+              '<div class="gli-meta">' +
+                (it.hospitalName ? '<span class="gli-pill">' + esc(it.hospitalName) + '</span>' : '') +
+                (it.department ? '<span class="gli-pill gli-pill-dept">' + esc(it.department) + '</span>' : '') +
+              '</div>' +
+            '</div>' +
+            '<div class="gli-actions">' +
+              '<button class="btn btn-sm" data-act="edit">编辑</button>' +
+              '<button class="btn btn-sm btn-danger" data-act="del">删除</button>' +
+            '</div>' +
+          '</div>'
+        ).join('') +
+        '<div class="muted small" style="margin-top:10px">同医院 + 同科室的安排会自动合并；编辑任一条改医院或科室即可拆开。</div>' +
+      '</div>';
+
+    const m = modal({
+      title: '同组合并共 ' + group.length + ' 条',
+      body: html,
+      footer: [{ label: '关闭', cls: '', onClick: (c) => c() }]
+    });
+
+    // 绑事件
+    m.body.querySelectorAll('.group-list-item').forEach(row => {
+      const id = row.dataset.id;
+      const it = group.find(x => x.id === id);
+      row.querySelector('button[data-act="edit"]').onclick = () => { m.close(); openScheduleForm(it); };
+      row.querySelector('button[data-act="del"]').onclick = async () => {
+        if (!await confirm('确定删除「' + it.customerName + '」的安排？', true)) return;
+        try { await window.API.deleteSchedule(id); toast('已删除', 'ok'); m.close(); await reload(); }
+        catch (e) { toast(e.message, 'err'); }
+      };
+    });
   }
 
   // ---------- 表单 ----------
@@ -173,13 +240,23 @@
       document.getElementById('csAdd').onclick = () => openScheduleForm(null, null);
 
       document.getElementById('csTable').addEventListener('click', (ev) => {
+        // 合并卡片
+        const merged = ev.target.closest('.cell-item-merged');
+        if (merged) {
+          const ids = (merged.dataset.ids || '').split(',').filter(Boolean);
+          const group = ids.map(id => state.items.find(x => x.id === id)).filter(Boolean);
+          if (group.length) openGroupList(group);
+          return;
+        }
+        // 单人卡片
         const item = ev.target.closest('.cell-item');
-        if (item) {
+        if (item && !item.classList.contains('cell-item-merged')) {
           const id = item.dataset.id;
           const it = state.items.find(x => x.id === id);
           if (it) openScheduleForm(it);
           return;
         }
+        // 空格子 → 新增
         const cell = ev.target.closest('.cs-cell-body');
         if (cell) {
           const w = Number(cell.dataset.w);
