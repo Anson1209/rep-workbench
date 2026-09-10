@@ -576,7 +576,9 @@ a.link { color: var(--primary); text-decoration: none; }
 .cs-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .cs-table {
   display: grid;
-  grid-template-columns: 46px repeat(7, minmax(80px, 110px));
+  /* B 改：7列等宽拉满整页（minmax(96px,1fr) 保证周一~周日间隔一致，窄屏横向滚动兜底） */
+  grid-template-columns: 46px repeat(7, minmax(96px, 1fr));
+  width: 100%;
   border: 1px solid var(--border);
   border-radius: 10px;
   overflow: hidden;
