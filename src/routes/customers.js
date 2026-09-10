@@ -53,6 +53,7 @@ function pubCustomer(c) {
     id: c.id,
     hospital: c.hospital,
     name: c.name,
+    surveyScope: (c.surveyScope || '').trim(),
     idCardMask: crypto.maskIdCard(crypto.decrypt(c.idCardEnc)),
     bankCardMask: crypto.maskBankCard(crypto.decrypt(c.bankCardEnc)),
     bankNameMask,
@@ -71,6 +72,7 @@ function fullCustomer(c) {
     id: c.id,
     hospital: c.hospital,
     name: c.name,
+    surveyScope: (c.surveyScope || '').trim(),
     idCard: crypto.decrypt(c.idCardEnc),
     bankCard: crypto.decrypt(c.bankCardEnc),
     bankName: c.bankName || '',
@@ -113,7 +115,7 @@ router.get('/', (req, res) => {
 // the rest of the data filled in later. Format is still validated when
 // a value is provided.
 router.post('/', (req, res) => {
-  const { hospital, name, idCard, bankCard, bankName, phone } = req.body || {};
+  const { hospital, name, idCard, bankCard, bankName, phone, surveyScope } = req.body || {};
   if (!name || !name.trim()) return res.status(400).json({ error: '姓名必填' });
   if (phone && !validatePhone(phone)) return res.status(400).json({ error: '手机号格式不正确（应为 11 位，1 开头）' });
   if (idCard && !validateIdCard(idCard)) return res.status(400).json({ error: '身份证号格式不正确' });
@@ -123,6 +125,7 @@ router.post('/', (req, res) => {
     id: db.uid('c_'),
     hospital: (hospital || '').trim(),
     name: name.trim(),
+    surveyScope: (surveyScope || '').trim().slice(0, 20),
     idCardEnc: crypto.encrypt((idCard || '').trim()),
     bankCardEnc: crypto.encrypt((bankCard || '').replace(/\s/g, '').trim()),
     bankName: (bankName || '').trim().slice(0, 40), // 简单长度限制防滥用
@@ -158,7 +161,7 @@ router.get('/:id/reveal', (req, res) => {
 router.put('/:id', (req, res) => {
   const c = db.getCollection('customers').find(x => x.id === req.params.id);
   if (!c) return res.status(404).json({ error: '未找到客户' });
-  const { hospital, name, idCard, bankCard, bankName, phone } = req.body || {};
+  const { hospital, name, idCard, bankCard, bankName, phone, surveyScope } = req.body || {};
   if (phone !== undefined && phone && !validatePhone(phone)) return res.status(400).json({ error: '手机号格式不正确' });
   if (idCard !== undefined && idCard && !validateIdCard(idCard)) return res.status(400).json({ error: '身份证号格式不正确' });
   if (bankCard !== undefined && bankCard && !validateBank(bankCard)) return res.status(400).json({ error: '银行卡号格式不正确' });
@@ -169,6 +172,7 @@ router.put('/:id', (req, res) => {
   if (idCard !== undefined) c.idCardEnc = crypto.encrypt(idCard.trim());
   if (bankCard !== undefined) c.bankCardEnc = crypto.encrypt(bankCard.replace(/\s/g, '').trim());
   if (bankName !== undefined) c.bankName = (bankName || '').trim().slice(0, 40);
+  if (surveyScope !== undefined) c.surveyScope = (surveyScope || '').trim().slice(0, 20);
   c.updatedAt = new Date().toISOString();
   db.save().then(() => res.json(fullCustomer(c))).catch(e => res.status(500).json({ error: e.message }));
 });
