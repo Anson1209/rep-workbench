@@ -3,8 +3,8 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-// 问卷调研台账 —— 项目类型（大区/BU）、额度（500/800）、≤3 次上限、≥30 天间隔校验。
-// 同 projectType + expertName 的所有记录共享一个额度池。
+// 问卷调研台账 —— 项目类型（大区/BU）、额度（500/800）。
+// 同 projectType + expertName 共享一个额度池；大区项目额外校验相邻两次 ≥30 天，BU 项目不做间隔限制。
 const PROJECT_TYPES = { '大区': 500, 'BU': 800 };
 const MAX_USAGE_PER_EXPERT = 3;
 const MIN_INTERVAL_DAYS = 30;
@@ -32,6 +32,10 @@ function daysBetween(prevISO, nextISO) {
 // 计算提醒状态：与该专家本次之前最近一条记录比较，间隔不足 30 天则违规。
 // isUpdate 时排除自身；returnReason=true 时返回字符串原因，否则返回 null。
 function computeReminder(col, expertName, projectType, usageDate, excludeId) {
+  // BU 项目不校验 30 天间隔。
+  if (projectType === 'BU') {
+    return { status: 'normal', reason: '', prevUsageDate: null, daysSincePrev: null };
+  }
   // 2026-06-01 之前录入的调研不受 30 天间隔约束，直接视为正常。
   if (usageDate && usageDate < EXEMPT_BEFORE) {
     return { status: 'normal', reason: '', prevUsageDate: null, daysSincePrev: null, exempt: true };
