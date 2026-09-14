@@ -26,7 +26,7 @@
   function shellHTML() {
     return '<div class="card">' +
       '<div class="section-head"><h2>问卷调研台账</h2>' +
-        '<span class="sub">按项目分额度（大区 ¥500 / BU ¥800），每位专家 ≤3 次，相邻两次 ≥30 天</span>' +
+        '<span class="sub">按项目分额度（大区 ¥500 / BU ¥800），每位专家同项目 ≤3 次；大区项目相邻两次 ≥30 天，BU 项目不限间隔</span>' +
         '<span class="spacer"></span><button class="btn btn-primary" id="addSurveyBtn">+ 新增记录</button></div>' +
       // 总计区：根据当前列表实时统计大区 / BU / 合计条数。点击可作为项目类型快捷筛选。
       '<div class="survey-totals" id="surveyTotals">' +
@@ -192,7 +192,7 @@
       '<div class="field"><label>备注</label><textarea class="textarea" id="s_note" placeholder="调研要点、反馈…">' + esc(s.note || '') + '</textarea></div>' +
       '<div class="field-err" id="s_err"></div>' +
       '<div class="tiny muted" style="margin-top:8px">' +
-        '📌 业务规则：每专家同项目 ≤3 次；相邻两次使用 ≥30 天，否则系统标记「⚠ 违规」。2026年6月之前的记录豁免间隔限制。' +
+        '📌 业务规则：每专家同项目 ≤3 次；大区项目相邻两次使用 ≥30 天，否则标记「⚠ 违规」。BU 项目不限间隔。2026年6月之前的记录豁免间隔限制。' +
       '</div>';
   }
 
