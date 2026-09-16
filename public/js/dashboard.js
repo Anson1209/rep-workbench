@@ -70,6 +70,13 @@
             '<div class="stat-num" id="statSurveys">—</div>' +
             '<div class="stat-label">问卷台账</div>' +
           '</button>' +
+          '<button class="stat-card" data-go="clinic" type="button">' +
+            '<div class="stat-icon stat-icon-teal">' +
+              '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/><path d="M12 12v4M10 14h4" stroke-width="2.2"/></svg>' +
+            '</div>' +
+            '<div class="stat-num" id="statClinic">—</div>' +
+            '<div class="stat-label">专家门诊</div>' +
+          '</button>' +
           '<button class="stat-card stat-card-add" data-go="add" type="button">' +
             '<div class="stat-icon stat-icon-add">+</div>' +
             '<div class="stat-num">+</div>' +
@@ -89,14 +96,16 @@
     // 加载数据
     try {
       const today = todayStr();
-      const [stats, events] = await Promise.all([
+      const [stats, events, schedule] = await Promise.all([
         window.API.stats(),
-        window.API.listEvents()
+        window.API.listEvents(),
+        window.API.listSchedule().catch(function () { return []; })
       ]);
 
       document.getElementById('statCustomers').textContent = stats.customers;
       document.getElementById('statEvents').textContent = stats.events;
       document.getElementById('statSurveys').textContent = stats.surveys;
+      document.getElementById('statClinic').textContent = Array.isArray(schedule) ? schedule.length : 0;
 
       const todayEvents = events.filter(function (e) { return e.date === today; });
       const alertText = document.getElementById('alertText');
