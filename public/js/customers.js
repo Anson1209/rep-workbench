@@ -3,7 +3,7 @@
   'use strict';
   const { esc, toast, modal, confirm, validPhone, validIdCard, validBank, initials, fileIcon, fmtSize } = window.UI;
 
-  const state = { q: '', list: [], reveal: {}, blobCache: {} };
+  const state = { q: '', list: [], reveal: {}, blobCache: {}, editing: false };
 
   function metaRow(k, v, sensitive) {
     return '<div class="row"><span class="k">' + esc(k) + '</span>' +
@@ -273,8 +273,24 @@
     const act = t.dataset.act;
     const id = t.dataset.id;
     if (act === 'edit') {
-      const c = state.list.find(x => x.id === id);
-      const full = await window.API.getCustomer(id).catch(() => c);
+      if (state.editing) return; // 防止连点/双击重复弹窗（手机端尤其易误触）
+      state.editing = true;
+      const btn = t;
+      const oldText = btn ? btn.textContent : '';
+      if (btn) { btn.disabled = true; btn.textContent = '加载中…'; }
+      let full;
+      try {
+        full = await window.API.getCustomer(id);
+      } catch (e) {
+        state.editing = false;
+        if (btn) { btn.disabled = false; btn.textContent = oldText; }
+        // 401 时 api.js 已弹出登录层，不要再开一个脱敏/空值表单（否则保存会覆盖真值）
+        if (e && e.status === 401) return;
+        toast(e.message || '加载失败', 'err');
+        return;
+      }
+      state.editing = false;
+      if (btn) { btn.disabled = false; btn.textContent = oldText; }
       openEdit(full);
     } else if (act === 'delc') {
       if (await confirm('确定删除该客户及其所有附件？此操作不可恢复。', true)) {
