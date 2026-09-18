@@ -55,10 +55,21 @@
     }
     mask.appendChild(m);
     root.appendChild(mask);
-    function close() { mask.remove(); document.removeEventListener('keydown', onKey); }
+    let armed = false;
+    let armTimer = null;
+    function close() {
+      mask.remove();
+      document.removeEventListener('keydown', onKey);
+      if (armTimer) clearTimeout(armTimer);
+      mask.removeEventListener('click', onMaskClick);
+    }
     function onKey(e) { if (e.key === 'Escape') close(); }
+    // 延迟"武装"遮罩关闭：避免触屏上点击「编辑」的同一手势（或其后约 300ms 的
+    // 幽灵点击）正好落在刚弹出的遮罩上，导致弹窗"一闪即关"的闪退现象。
+    function onMaskClick(e) { if (armed && e.target === mask) close(); }
     x.onclick = close;
-    mask.onclick = (e) => { if (e.target === mask) close(); };
+    armTimer = setTimeout(() => { armed = true; }, 300);
+    mask.addEventListener('click', onMaskClick);
     document.addEventListener('keydown', onKey);
     return { close, body, el: m };
   }
